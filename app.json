@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "7 Days",
+    "slug": "7days-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1A1A"
+    },
+    "ios": {
+      "icon": "./assets/icon.png",
+      "supportsTablet": false,
+      "bundleIdentifier": "com.7days.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#1A1A1A"
+      },
+      "package": "com.7days.mobile",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {},
+    "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo.png",
+          "backgroundColor": "#1A1A1A"
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "apiBaseUrl": "http://localhost:5001/api",
+      "eas": {
+        "projectId": "ccb3b13e-ae99-40db-b976-75d707d2ce3a"
+      }
+    }
+  }
+}
