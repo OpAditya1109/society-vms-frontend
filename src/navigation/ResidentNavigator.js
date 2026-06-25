@@ -43,10 +43,12 @@ function ProfileStack() {
 function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name={SCREENS.RESIDENT_DASHBOARD} component={ResidentDashboardScreen} />
-      <Stack.Screen name="ResidentPreApproved"        component={PreApprovedScreen} />
-      <Stack.Screen name="ResidentAmenities"          component={AmenityBookingScreen} />
-      <Stack.Screen name="ResidentSos"                component={SosScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_DASHBOARD}  component={ResidentDashboardScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_VISITORS}   component={VisitorRequestsScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_COMPLAINTS} component={ComplaintsScreen} />
+      <Stack.Screen name="ResidentPreApproved"         component={PreApprovedScreen} />
+      <Stack.Screen name="ResidentAmenities"           component={AmenityBookingScreen} />
+      <Stack.Screen name="ResidentSos"                 component={SosScreen} />
     </Stack.Navigator>
   );
 }
@@ -81,11 +83,6 @@ export default function ResidentNavigator() {
         component={HomeStack}
         options={{ tabBarLabel: 'Home', tabBarIcon: tabIcon('home-outline') }}
       />
-      <Tab.Screen
-        name={SCREENS.RESIDENT_VISITORS}
-        component={VisitorRequestsScreen}
-        options={{ tabBarLabel: 'Visitors', tabBarIcon: tabIcon('people-outline') }}
-      />
       {/* ── Community tab ──────────────────────────────────────────── */}
       <Tab.Screen
         name="ResidentCommunity"
@@ -97,11 +94,6 @@ export default function ResidentNavigator() {
         name="ResidentMarketplace"
         component={MarketplaceStack}
         options={{ tabBarLabel: 'Marketplace', tabBarIcon: tabIcon('storefront-outline') }}
-      />
-      <Tab.Screen
-        name={SCREENS.RESIDENT_COMPLAINTS}
-        component={ComplaintsScreen}
-        options={{ tabBarLabel: 'Complaints', tabBarIcon: tabIcon('alert-circle-outline') }}
       />
       <Tab.Screen
         name="ResidentProfileStack"

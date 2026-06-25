@@ -111,24 +111,23 @@ export default function VisitorEntryScreen({ navigation }) {
 
   // ── Camera ──────────────────────────────────────────────────────────────────
 
-  const handleCapturePhoto = async () => {
-    setPhotoError(null);
+const handleCapturePhoto = async () => {
+  setPhotoError(null);
 
-    // Request camera permission
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      setPhotoError('Camera permission is required to capture visitor photo.');
-      Alert.alert(
-        'Permission Required',
-        'Camera access is needed to capture the visitor photo. Please enable it in your device settings.',
-        [{ text: 'OK' }],
-      );
-      return;
-    }
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== 'granted') {
+    setPhotoError('Camera permission is required to capture visitor photo.');
+    Alert.alert(
+      'Permission Required',
+      'Camera access is needed. Please enable it in device Settings.',
+      [{ text: 'OK' }],
+    );
+    return;
+  }
 
-    // Launch camera
+  try {
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'Images',  // ← fixed (no more MediaTypeOptions)
       allowsEditing: true,
       aspect: [3, 4],
       quality: 0.7,
@@ -138,11 +137,14 @@ export default function VisitorEntryScreen({ navigation }) {
 
     const uri = result.assets[0].uri;
     setPhotoUri(uri);
-    setPhotoUrl(null); // reset previous upload
-
-    // Auto-upload immediately after capture
+    setPhotoUrl(null);
     await uploadPhoto(uri);
-  };
+  } catch (err) {
+    console.error('[Camera] Error:', err);
+    setPhotoError('Failed to open camera. Please try again.');
+    Alert.alert('Camera Error', err.message ?? 'Could not open camera.');
+  }
+};
 
   const uploadPhoto = async (uri) => {
     setIsUploading(true);

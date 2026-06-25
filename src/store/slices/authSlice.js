@@ -97,6 +97,7 @@ export const {
 
 // ── Selectors ─────────────────────────────────────────────────────────────
 export const selectCurrentUser         = (state) => state.auth.user;
+export const selectUserStatus      = (state) => state.auth.user?.status ?? null;  // ← ADD THIS
 export const selectAccessToken         = (state) => state.auth.accessToken;
 export const selectRefreshToken        = (state) => state.auth.refreshToken;
 export const selectIsAuthenticated     = (state) => state.auth.isAuthenticated;

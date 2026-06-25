@@ -1,11 +1,12 @@
 // src/screens/auth/RegisterScreen.js
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from 'react-native';
 import {
   Text,
@@ -14,6 +15,9 @@ import {
   Menu,
   Button,
   Divider,
+  TextInput,
+  Modal,
+  Portal,
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
@@ -29,6 +33,7 @@ import { ROLES, SCREENS, QUERY_KEYS } from '../../constants';
 
 import AppInput  from '../../components/common/AppInput';
 import AppButton from '../../components/common/AppButton';
+import { COUNTRIES, INDIAN_STATES, MOBILE_LENGTH } from '../../constants/countryStateData';
 
 const ROLE_OPTIONS = [
   { value: ROLES.RESIDENT, label: 'Resident' },
@@ -49,6 +54,17 @@ export default function RegisterScreen() {
 
   // Toggle: join existing society vs create new one
   const [createMode, setCreateMode] = useState(false);
+
+  // Mobile + Country Code
+  const [countryCode, setCountryCode] = useState(COUNTRIES[0]); // Default to India
+  const [countryMenuVisible, setCountryMenuVisible] = useState(false);
+
+  // Search society
+  const [societySearch, setSocietySearch] = useState('');
+
+  // State/City dropdowns
+  const [stateMenuVisible, setStateMenuVisible] = useState(false);
+  const [cityMenuVisible, setCityMenuVisible] = useState(false);
 
   const [form, setForm] = useState({
     firstName: '',
@@ -79,6 +95,22 @@ export default function RegisterScreen() {
   });
   const societies = societiesData ?? [];
 
+  // Filter societies by search term
+  const filteredSocieties = useMemo(() => {
+    if (!societySearch.trim()) return societies;
+    const term = societySearch.toLowerCase();
+    return societies.filter(s => 
+      s.name.toLowerCase().includes(term) ||
+      s.address?.city?.toLowerCase().includes(term) ||
+      s.address?.state?.toLowerCase().includes(term)
+    );
+  }, [societies, societySearch]);
+
+  // Get available cities for selected state
+  const availableCities = useMemo(() => {
+    return INDIAN_STATES[newSociety.address.state] || [];
+  }, [newSociety.address.state]);
+
   // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
@@ -87,7 +119,7 @@ export default function RegisterScreen() {
     if (!form.email.trim())     e.email     = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Enter a valid email';
     if (!form.mobile.trim())    e.mobile    = 'Mobile number is required';
-    else if (!/^[6-9]\d{9}$/.test(form.mobile)) e.mobile = 'Enter a valid 10-digit mobile';
+    else if (!/^\d{10}$/.test(form.mobile)) e.mobile = `Enter a valid ${MOBILE_LENGTH}-digit mobile`;
     if (!form.password.trim() || form.password.length < 6)
       e.password = 'Password must be at least 6 characters';
 
@@ -115,7 +147,7 @@ export default function RegisterScreen() {
         firstName: form.firstName.trim(),
         lastName:  form.lastName.trim(),
         email:     form.email.trim().toLowerCase(),
-        mobile:    form.mobile.trim(),
+        mobile:    `${countryCode.code}${form.mobile.trim()}`,
         password:  form.password,
         role,
         societyId: form.societyId,
@@ -151,7 +183,7 @@ export default function RegisterScreen() {
           firstName: form.firstName.trim(),
           lastName:  form.lastName.trim(),
           email:     form.email.trim().toLowerCase(),
-          mobile:    form.mobile.trim(),
+          mobile:    form.mobile.trim(), // raw 10-digit — backend zod expects /^[6-9]\d{9}$/
           password:  form.password,
         },
       }),
@@ -218,76 +250,115 @@ export default function RegisterScreen() {
             style={[styles.backLink, { color: colors.primary }]}
             onPress={() => navigation.goBack()}
           >
-            ← Back to Login
+            ← Back
           </Text>
 
-          <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
+          <Text variant="headlineSmall" style={[styles.title, { color: colors.onBackground }]}>
             Create Account
           </Text>
-          <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, marginBottom: 24 }}>
-            Join your society on Society VMS
-          </Text>
 
-          {/* Role selector — only shown when joining existing */}
-          {!createMode && (
-            <>
-              <Text variant="labelLarge" style={[styles.sectionLabel, { color: colors.onSurface }]}>
-                I am a…
-              </Text>
-              <SegmentedButtons
-                value={role}
-                onValueChange={setRole}
-                buttons={ROLE_OPTIONS}
-                style={styles.segmented}
-              />
-            </>
-          )}
-
-          {/* Form card */}
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            {/* Role Selection */}
+            <Text variant="labelMedium" style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>
+              I am a...
+            </Text>
+            <SegmentedButtons
+              value={role}
+              onValueChange={(r) => { setRole(r); if (r !== "admin") setCreateMode(false); }}
+              buttons={ROLE_OPTIONS}
+              style={styles.segmented}
+            />
 
-            {/* ── Personal details ──────────────────────────────────── */}
-            <View style={styles.row}>
-              <AppInput
-                label="First Name"
-                value={form.firstName}
-                onChangeText={set('firstName')}
-                error={errors.firstName}
-                left="account-outline"
-                style={styles.halfInput}
-              />
-              <AppInput
-                label="Last Name"
-                value={form.lastName}
-                onChangeText={set('lastName')}
-                error={errors.lastName}
-                style={styles.halfInput}
-              />
-            </View>
+            {/* Personal Info */}
+            <Text variant="labelMedium" style={[styles.sectionHeader, { color: colors.onSurface }]}>
+              Personal Information
+            </Text>
 
             <AppInput
-              label="Email Address"
+              label="First Name *"
+              value={form.firstName}
+              onChangeText={set('firstName')}
+              error={errors.firstName}
+              left="account-outline"
+              style={styles.field}
+            />
+
+            <AppInput
+              label="Last Name *"
+              value={form.lastName}
+              onChangeText={set('lastName')}
+              error={errors.lastName}
+              left="account-outline"
+              style={styles.field}
+            />
+
+            <AppInput
+              label="Email *"
               value={form.email}
               onChangeText={set('email')}
               error={errors.email}
               keyboardType="email-address"
-              autoCapitalize="none"
               left="email-outline"
               style={styles.field}
             />
 
-            <AppInput
-              label="Mobile Number"
-              value={form.mobile}
-              onChangeText={set('mobile')}
-              error={errors.mobile}
-              keyboardType="phone-pad"
-              left="phone-outline"
-              style={styles.field}
-            />
+            {/* Mobile with Country Code */}
+            <Text variant="labelMedium" style={[styles.pickerLabel, { color: colors.onSurfaceVariant }]}>
+              Mobile Number *
+            </Text>
+            <View style={styles.mobileRow}>
+              <Menu
+                visible={countryMenuVisible}
+                onDismiss={() => setCountryMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setCountryMenuVisible(true)}
+                    style={[styles.countryBtn, { borderColor: colors.outline }]}
+                    labelStyle={styles.countryBtnLabel}
+                    compact
+                  >
+                    {`${countryCode.flag} ${countryCode.code}`}
+                  </Button>
+                }
+              >
+                {COUNTRIES.map((c) => (
+                  <Menu.Item
+                    key={c.id}
+                    title={`${c.flag} ${c.name}`}
+                    description={c.code}
+                    onPress={() => {
+                      setCountryCode(c);
+                      setCountryMenuVisible(false);
+                    }}
+                  />
+                ))}
+              </Menu>
+
+              <TextInput
+                label="10-digit"
+                value={form.mobile}
+                onChangeText={(v) => {
+                  const digits = v.replace(/\D/g, '').slice(0, MOBILE_LENGTH);
+                  set('mobile')(digits);
+                }}
+                mode="outlined"
+                keyboardType="number-pad"
+                maxLength={MOBILE_LENGTH}
+                outlineColor={colors.outline}
+                activeOutlineColor={colors.primary}
+                style={styles.mobileInput}
+                outlineStyle={{ borderRadius: 12 }}
+              />
+            </View>
+            {!!errors.mobile && (
+              <Text variant="bodySmall" style={{ color: colors.error, marginTop: 4 }}>
+                {errors.mobile}
+              </Text>
+            )}
 
             <AppInput
-              label="Password"
+              label="Password *"
               value={form.password}
               onChangeText={set('password')}
               error={errors.password}
@@ -296,14 +367,11 @@ export default function RegisterScreen() {
               style={styles.field}
             />
 
-            <Divider style={{ marginVertical: 16 }} />
-
-            {/* ── Society section ───────────────────────────────────── */}
-            <Text variant="titleSmall" style={[styles.sectionHeader, { color: colors.onSurface }]}>
+            {/* Society Selection */}
+            <Text variant="labelMedium" style={[styles.sectionHeader, { color: colors.onSurface, marginTop: 20 }]}>
               Society
             </Text>
 
-            {/* Toggle: join vs create */}
             <View style={styles.toggleRow}>
               <Button
                 mode={!createMode ? 'contained' : 'outlined'}
@@ -313,14 +381,17 @@ export default function RegisterScreen() {
               >
                 Join Existing
               </Button>
-              <Button
-                mode={createMode ? 'contained' : 'outlined'}
-                onPress={() => { setCreateMode(true); setRole(ROLES.ADMIN); }}
-                style={styles.toggleBtn}
-                compact
-              >
-                + Create New
-              </Button>
+              {/* Only admins can create a new society */}
+              {role === ROLES.ADMIN && (
+                <Button
+                  mode={createMode ? 'contained' : 'outlined'}
+                  onPress={() => setCreateMode(true)}
+                  style={styles.toggleBtn}
+                  compact
+                >
+                  + Create New
+                </Button>
+              )}
             </View>
 
             {createMode ? (
@@ -351,22 +422,90 @@ export default function RegisterScreen() {
                   style={styles.field}
                 />
 
-                <View style={styles.row}>
-                  <AppInput
-                    label="City *"
-                    value={newSociety.address.city}
-                    onChangeText={setAddr('city')}
-                    error={errors.city}
-                    style={styles.halfInput}
-                  />
-                  <AppInput
-                    label="State *"
-                    value={newSociety.address.state}
-                    onChangeText={setAddr('state')}
-                    error={errors.state}
-                    style={styles.halfInput}
-                  />
-                </View>
+                {/* State Dropdown */}
+                <Text variant="labelMedium" style={[styles.pickerLabel, { color: colors.onSurfaceVariant }]}>
+                  State *
+                </Text>
+                <Menu
+                  visible={stateMenuVisible}
+                  onDismiss={() => setStateMenuVisible(false)}
+                  anchor={
+                    <Button
+                      mode="outlined"
+                      onPress={() => setStateMenuVisible(true)}
+                      style={[
+                        styles.societyBtn,
+                        { borderColor: errors.state ? colors.error : colors.outline },
+                      ]}
+                      contentStyle={{ justifyContent: 'flex-start' }}
+                      icon="map-outline"
+                    >
+                      {newSociety.address.state || 'Select State'}
+                    </Button>
+                  }
+                >
+                  {Object.keys(INDIAN_STATES).map((state) => (
+                    <Menu.Item
+                      key={state}
+                      title={state}
+                      onPress={() => {
+                        setAddr('state')(state);
+                        setAddr('city')(''); // Reset city when state changes
+                        if (errors.state) setErrors((e) => ({ ...e, state: undefined }));
+                        setStateMenuVisible(false);
+                      }}
+                    />
+                  ))}
+                </Menu>
+                {!!errors.state && (
+                  <Text variant="bodySmall" style={{ color: colors.error, marginTop: 4 }}>
+                    {errors.state}
+                  </Text>
+                )}
+
+                {/* City Dropdown - only show if state is selected */}
+                {newSociety.address.state && (
+                  <>
+                    <Text variant="labelMedium" style={[styles.pickerLabel, { color: colors.onSurfaceVariant }]}>
+                      City *
+                    </Text>
+                    <Menu
+                      visible={cityMenuVisible}
+                      onDismiss={() => setCityMenuVisible(false)}
+                      anchor={
+                        <Button
+                          mode="outlined"
+                          onPress={() => setCityMenuVisible(true)}
+                          style={[
+                            styles.societyBtn,
+                            { borderColor: errors.city ? colors.error : colors.outline },
+                          ]}
+                          contentStyle={{ justifyContent: 'flex-start' }}
+                          icon="city"
+                        >
+                          {newSociety.address.city || 'Select City'}
+                        </Button>
+                      }
+                    >
+                      {availableCities.map((city) => (
+                        <Menu.Item
+                          key={city}
+                          title={city}
+                          onPress={() => {
+                            setAddr('city')(city);
+                            if (errors.city) setErrors((e) => ({ ...e, city: undefined }));
+                            setCityMenuVisible(false);
+                          }}
+                        />
+                      ))}
+                    </Menu>
+                    {!!errors.city && (
+                      <Text variant="bodySmall" style={{ color: colors.error, marginTop: 4 }}>
+                        {errors.city}
+                      </Text>
+                    )}
+                  </>
+                )}
 
                 <View style={styles.row}>
                   <AppInput
@@ -393,6 +532,21 @@ export default function RegisterScreen() {
                 <Text variant="labelMedium" style={[styles.pickerLabel, { color: colors.onSurfaceVariant }]}>
                   Select Society *
                 </Text>
+                
+                {/* Search Bar */}
+                <TextInput
+                  placeholder="Search by name, city, or state..."
+                  value={societySearch}
+                  onChangeText={setSocietySearch}
+                  mode="outlined"
+                  left={<TextInput.Icon icon="magnify" />}
+                  right={societySearch ? <TextInput.Icon icon="close" onPress={() => setSocietySearch('')} /> : undefined}
+                  outlineColor={colors.outline}
+                  activeOutlineColor={colors.primary}
+                  style={[styles.field, { marginBottom: 8 }]}
+                  outlineStyle={{ borderRadius: 12 }}
+                />
+
                 <Menu
                   visible={societyMenuVisible}
                   onDismiss={() => setSocietyMenuVisible(false)}
@@ -412,10 +566,10 @@ export default function RegisterScreen() {
                     </Button>
                   }
                 >
-                  {societies.length === 0 ? (
-                    <Menu.Item title="No societies found — create one instead" disabled />
+                  {filteredSocieties.length === 0 ? (
+                    <Menu.Item title={societySearch ? 'No matching societies' : 'No societies found — create one instead'} disabled />
                   ) : (
-                    societies.map((s) => (
+                    filteredSocieties.map((s) => (
                       <Menu.Item
                         key={s._id}
                         title={s.name}
@@ -511,11 +665,36 @@ const styles = StyleSheet.create({
   toggleRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
   toggleBtn: { flex: 1, borderRadius: 10 },
   hint: { marginBottom: 8, fontStyle: 'italic' },
-  pickerLabel: { marginTop: 4, marginBottom: 4 },
+  pickerLabel: { marginTop: 12, marginBottom: 8 },
   societyBtn: {
     borderRadius: 12,
     justifyContent: 'flex-start',
     marginBottom: 4,
+  },
+  mobileRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    marginBottom: 4,
+    height: 56,
+  },
+  countryBtn: {
+    borderRadius: 12,
+    minWidth: 90,
+    maxWidth: 100,
+    paddingHorizontal: 0,
+    height: 56,
+    justifyContent: 'center',
+  },
+  countryBtnLabel: {
+    fontSize: 13,
+    marginVertical: 0,
+    lineHeight: 20,
+  },
+  mobileInput: {
+    backgroundColor: 'transparent',
+    flex: 1,
+    height: 56,
   },
   registerBtn: { marginTop: 20 },
   divider: { marginVertical: 24 },

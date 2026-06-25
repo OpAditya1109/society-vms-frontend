@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
+import Toast from 'react-native-toast-message';
 
 import {
   useCommunityPosts, useMyPosts, useCreatePost,
@@ -305,11 +306,55 @@ export default function CommunityScreen() {
   const showContact   = watchCategory === 'event' || watchCategory === 'business';
 
   const onSubmit = (values) => {
-    createMutation.mutate(values, {
+    // ✅ Validate category is truly selected
+    if (!values.category || values.category.trim() === '') {
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Please select a category before posting',
+      });
+      return;
+    }
+
+    // ✅ Validate title
+    if (!values.title || values.title.trim().length < 5) {
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Title must be at least 5 characters',
+      });
+      return;
+    }
+
+    // ✅ Validate body
+    if (!values.body || values.body.trim().length < 10) {
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Details must be at least 10 characters',
+      });
+      return;
+    }
+
+    // ✅ Build clean payload
+    const payload = {
+      title: values.title.trim(),
+      body: values.body.trim(),
+      category: values.category.trim(),
+      ...(values.contactInfo?.trim() && { contactInfo: values.contactInfo.trim() }),
+    };
+
+    console.log('📤 Submitting community post:', payload); // For debugging
+
+    createMutation.mutate(payload, {
       onSuccess: () => {
         reset();
         setShowForm(false);
         setTab('feed');
+      },
+      onError: (error) => {
+        console.error('❌ Post creation error:', error);
+        // Error handling is done in the hook
       },
     });
   };

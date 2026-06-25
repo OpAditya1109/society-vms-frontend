@@ -66,7 +66,7 @@ export const SCREENS = Object.freeze({
   SPLASH:   'Splash',
   LOGIN:    'Login',
   REGISTER: 'Register',
-
+  PENDING_APPROVAL:  'PendingApproval',  // ← ADD THIS
   // Resident
   RESIDENT_TABS:             'ResidentTabs',
   RESIDENT_DASHBOARD:        'ResidentDashboard',

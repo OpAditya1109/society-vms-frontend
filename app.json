@@ -5,7 +5,15 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/ccb3b13e-ae99-40db-b976-75d707d2ce3a"
+    },
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
@@ -14,14 +22,14 @@
     "ios": {
       "icon": "./assets/icon.png",
       "supportsTablet": false,
-      "bundleIdentifier": "com.7days.mobile"
+      "bundleIdentifier": "com.sevendays.society"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#1A1A1A"
       },
-      "package": "com.7days.mobile",
+      "package": "com.sevendays.society",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -32,6 +40,7 @@
     "plugins": [
       "expo-font",
       "expo-secure-store",
+      "expo-updates",
       [
         "expo-splash-screen",
         {
@@ -42,7 +51,7 @@
       "@react-native-community/datetimepicker"
     ],
     "extra": {
-      "apiBaseUrl": "http://localhost:5001/api",
+      "apiBaseUrl": "https://society-vms.vercel.app/api",
       "eas": {
         "projectId": "ccb3b13e-ae99-40db-b976-75d707d2ce3a"
       }

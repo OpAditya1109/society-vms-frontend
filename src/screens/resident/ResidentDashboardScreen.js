@@ -3,6 +3,7 @@ import React, { useCallback, useState } from 'react';
 import {
   View, ScrollView, StyleSheet, RefreshControl,
   TouchableOpacity, TextInput, Modal, Alert, Linking,
+  Animated, Dimensions, Image,
 } from 'react-native';
 import { Text, useTheme, Surface } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,29 +13,109 @@ import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import { useResidentDashboard } from '../../hooks/useDashboard';
 import { useActiveGuards, useSendGuardMessage } from '../../hooks/useGuards';
+import { SCREENS } from '../../constants';
 import StatCard from '../../components/resident/StatCard';
 import NoticeCard from '../../components/resident/NoticeCard';
-import VisitorCard from '../../components/resident/VisitorCard';
 import { SkeletonDashboard, SkeletonList } from '../../components/resident/SkeletonCard';
 import { EmptyState, ErrorState } from '../../components/common';
 
-// ── Greeting ──────────────────────────────────────────────────────────────────
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return { text: 'Good Morning', icon: '🌤️' };
-  if (h < 17) return { text: 'Good Afternoon', icon: '☀️' };
-  return { text: 'Good Evening', icon: '🌙' };
-}
+// ── All actions definition ────────────────────────────────────────────────────
+const ALL_ACTIONS = [
+  { icon: 'people-outline',           label: 'Visitors',   color: '#4361EE', screen: 'ResidentVisitors' },
+  { icon: 'shield-checkmark-outline', label: 'Whitelist',  color: '#2E7D32', screen: 'ResidentPreApproved' },
+  { icon: 'calendar-outline',         label: 'Amenities',  color: '#9C27B0', screen: 'ResidentAmenities' },
+  { icon: 'warning-outline',          label: 'SOS',        color: '#C62828', screen: 'ResidentSos' },
+  { icon: 'alert-circle-outline',     label: 'Complaints', color: '#F57C00', screen: 'ResidentComplaints' },
+  { icon: 'newspaper-outline',        label: 'Notices',    color: '#0277BD', screen: 'ResidentNotices' },
+  { icon: 'storefront-outline',       label: 'Market',     color: '#6D4C41', screen: 'ResidentMarketplace' },
+  { icon: 'people-circle-outline',    label: 'Family',     color: '#00897B', screen: 'ResidentFamilyMembers' },
+  { icon: 'car-outline',              label: 'Vehicles',   color: '#5C6BC0', screen: 'ResidentVehicles' },
+  { icon: 'help-buoy-outline',        label: 'Daily Help', color: '#D81B60', screen: 'ResidentDailyHelp' },
+  { icon: 'globe-outline',            label: 'Community',  color: '#558B2F', screen: 'ResidentCommunity' },
+];
+const VISIBLE_COUNT = 7;
+const HIDDEN_COUNT  = ALL_ACTIONS.length - VISIBLE_COUNT;
 
 // ── Quick Action Button ───────────────────────────────────────────────────────
 function QuickAction({ icon, label, color, onPress }) {
   return (
     <TouchableOpacity style={styles.quickAction} onPress={onPress} activeOpacity={0.75}>
       <View style={[styles.quickActionIcon, { backgroundColor: color + '18' }]}>
-        <Ionicons name={icon} size={24} color={color} />
+        <Ionicons name={icon} size={22} color={color} />
       </View>
-      <Text style={[styles.quickActionLabel, { color: '#555' }]}>{label}</Text>
+      <Text style={styles.quickActionLabel}>{label}</Text>
     </TouchableOpacity>
+  );
+}
+
+// ── View More tile ────────────────────────────────────────────────────────────
+function ViewMoreTile({ onPress }) {
+  return (
+    <TouchableOpacity style={styles.quickAction} onPress={onPress} activeOpacity={0.75}>
+      <View style={[styles.quickActionIcon, { backgroundColor: '#546E7A18', position: 'relative' }]}>
+        <Ionicons name="grid-outline" size={22} color="#546E7A" />
+        <View style={styles.moreBadge}>
+          <Text style={styles.moreBadgeText}>+{HIDDEN_COUNT}</Text>
+        </View>
+      </View>
+      <Text style={[styles.quickActionLabel, { color: '#546E7A' }]}>View More</Text>
+    </TouchableOpacity>
+  );
+}
+
+// ── All Actions Bottom Sheet ──────────────────────────────────────────────────
+const SHEET_HEIGHT = Dimensions.get('window').height * 0.55;
+
+function AllActionsSheet({ visible, onClose, onNavigate }) {
+  const slideAnim = React.useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const fadeAnim  = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(fadeAnim,  { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, friction: 18, tension: 120, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(fadeAnim,  { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: SHEET_HEIGHT, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <Modal transparent animationType="none" onRequestClose={onClose} visible={visible}>
+      <Animated.View style={[styles.sheetOverlay, { opacity: fadeAnim }]}>
+        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
+        <Animated.View style={[styles.sheetContainer, { transform: [{ translateY: slideAnim }] }]}>
+          <View style={styles.sheetHandle} />
+          <View style={styles.sheetHeaderRow}>
+            <Text style={styles.sheetTitle}>All Features</Text>
+            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close-circle" size={26} color="#9E9E9E" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.sheetGrid}>
+            {ALL_ACTIONS.map((action) => (
+              <TouchableOpacity
+                key={action.label}
+                style={styles.sheetAction}
+                activeOpacity={0.75}
+                onPress={() => { onClose(); onNavigate(action.screen); }}
+              >
+                <View style={[styles.sheetActionIcon, { backgroundColor: action.color + '18' }]}>
+                  <Ionicons name={action.icon} size={24} color={action.color} />
+                </View>
+                <Text style={styles.sheetActionLabel}>{action.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
   );
 }
 
@@ -141,19 +222,27 @@ function MessageModal({ visible, guard, onClose, onSend }) {
 export default function ResidentDashboardScreen({ navigation }) {
   const { colors } = useTheme();
   const user = useSelector(selectCurrentUser);
-  const greeting = getGreeting();
-
   const { data, isLoading, isError, error, refetch, isRefetching } = useResidentDashboard();
   const { data: guardsData, isLoading: guardsLoading, refetch: refetchGuards } = useActiveGuards();
   const sendMessageMutation = useSendGuardMessage();
 
   const [selectedGuard, setSelectedGuard] = useState(null);
   const [msgModalVisible, setMsgModalVisible] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   const onRefresh = useCallback(() => {
     refetch();
     refetchGuards();
   }, [refetch, refetchGuards]);
+
+  if (user?.isActive === false) {
+    return (
+      <PendingApprovalScreen
+        onRefresh={onRefresh}
+        isRefreshing={isRefetching}
+      />
+    );
+  }
 
   const stats = data?.data?.stats ?? {};
   const recentVisitors = data?.data?.recentVisitors ?? [];
@@ -181,6 +270,24 @@ export default function ResidentDashboardScreen({ navigation }) {
   };
 
   if (isError) {
+    const status = error?.response?.status;
+    const msg = (error?.response?.data?.message ?? '').toLowerCase();
+    const isPending =
+      status === 403 ||
+      msg.includes('pending') ||
+      msg.includes('not approved') ||
+      msg.includes('not active') ||
+      user?.isActive === false;
+
+    if (isPending) {
+      return (
+        <PendingApprovalScreen
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
+        />
+      );
+    }
+
     return (
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
         <ErrorState
@@ -210,52 +317,52 @@ export default function ResidentDashboardScreen({ navigation }) {
       >
         {/* ── Hero Header ── */}
         <View style={styles.heroHeader}>
-          <View style={styles.heroTop}>
-            <View>
-              <Text style={styles.greetingSmall}>{greeting.icon} {greeting.text}</Text>
-              <Text style={styles.greetingName}>
+          <View style={styles.heroRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.heroGreeting}>Welcome back 👋</Text>
+              <Text style={styles.heroName} numberOfLines={1}>
                 {user?.firstName ?? 'Resident'} {user?.lastName ?? ''}
               </Text>
-              {user?.flatNumber && (
-                <View style={styles.flatBadge}>
-                  <Ionicons name="home-outline" size={12} color={colors.primary} />
-                  <Text style={[styles.flatBadgeText, { color: colors.primary }]}>
-                    Flat {user.flatNumber}
-                  </Text>
-                </View>
-              )}
             </View>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarLetter}>
+
+            {/* Avatar — tap to open Profile */}
+            <TouchableOpacity
+              style={styles.heroAvatar}
+              onPress={() => navigation?.navigate?.('ResidentProfileStack')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.heroAvatarLetter}>
                 {(user?.firstName?.[0] ?? 'R').toUpperCase()}
               </Text>
-            </View>
+              {/* Small profile indicator dot */}
+              <View style={styles.profileDot} />
+            </TouchableOpacity>
           </View>
 
-          {/* Guard duty summary pill */}
-          {!guardsLoading && (
-            <View style={[styles.dutyPill, { backgroundColor: onDutyGuards.length > 0 ? '#E8F5E9' : '#FFF3E0' }]}>
-              <View style={[styles.statusDot, { backgroundColor: onDutyGuards.length > 0 ? '#4CAF50' : '#FF9800', width: 8, height: 8 }]} />
-              <Text style={[styles.dutyPillText, { color: onDutyGuards.length > 0 ? '#2E7D32' : '#E65100' }]}>
-                {onDutyGuards.length > 0
-                  ? `${onDutyGuards.length} Guard${onDutyGuards.length > 1 ? 's' : ''} On Duty`
-                  : 'No Guards On Duty'}
-              </Text>
+          {user?.flatNumber && (
+            <View style={styles.heroFlatBadge}>
+              <Ionicons name="home-outline" size={13} color="#4361EE" />
+              <Text style={styles.heroFlatText}>Flat {user.flatNumber}</Text>
             </View>
           )}
         </View>
 
-    
-
         {/* ── Quick Actions ── */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
-    
-<Surface style={styles.quickActionsRow} elevation={1}>
-  <QuickAction icon="people-outline"        label="Visitors"    color={colors.primary}  onPress={() => navigation?.navigate?.('ResidentVisitors')} />
-  <QuickAction icon="shield-checkmark-outline" label="Whitelist" color="#2E7D32"       onPress={() => navigation?.navigate?.('ResidentPreApproved')} />
-  <QuickAction icon="calendar-outline"      label="Amenities"   color="#9C27B0"         onPress={() => navigation?.navigate?.('ResidentAmenities')} />
-  <QuickAction icon="warning-outline"       label="SOS"         color="#C62828"         onPress={() => navigation?.navigate?.('ResidentSos')} />
-</Surface>
+        <Surface style={styles.quickActionsCard} elevation={1}>
+          <View style={styles.quickActionsGrid}>
+            {ALL_ACTIONS.slice(0, VISIBLE_COUNT).map((action) => (
+              <QuickAction
+                key={action.label}
+                icon={action.icon}
+                label={action.label}
+                color={action.color}
+                onPress={() => navigation?.navigate?.(action.screen)}
+              />
+            ))}
+            <ViewMoreTile onPress={() => setSheetVisible(true)} />
+          </View>
+        </Surface>
 
         {/* ── Guard Status Section ── */}
         <View style={styles.sectionHeader}>
@@ -278,7 +385,6 @@ export default function ResidentDashboardScreen({ navigation }) {
           </Surface>
         ) : (
           <View style={styles.guardsList}>
-            {/* On Duty First */}
             {onDutyGuards.length > 0 && (
               <>
                 <Text style={styles.guardGroupLabel}>🟢 On Duty</Text>
@@ -287,7 +393,6 @@ export default function ResidentDashboardScreen({ navigation }) {
                 ))}
               </>
             )}
-            {/* Off Duty */}
             {offDutyGuards.length > 0 && (
               <>
                 <Text style={[styles.guardGroupLabel, { color: '#9E9E9E' }]}>⚫ Off Duty</Text>
@@ -299,10 +404,10 @@ export default function ResidentDashboardScreen({ navigation }) {
           </View>
         )}
 
-        {/* ── Recent Visitors ── */}
+{/* ── Recent Visitors ── */}
         <Text style={styles.sectionTitle}>Recent Visitors</Text>
         {isLoading ? (
-          <SkeletonList count={3} />
+          <SkeletonList count={1} />
         ) : recentVisitors.length === 0 ? (
           <EmptyState
             icon="people-outline"
@@ -310,13 +415,35 @@ export default function ResidentDashboardScreen({ navigation }) {
             subtitle="Visitors logged by the guard will appear here."
           />
         ) : (
-          <View style={styles.list}>
-            {recentVisitors.map((v) => (
-              <VisitorCard key={v._id} visitor={v} />
-            ))}
-          </View>
+          <Surface style={styles.recentVisitorsCard} elevation={1}>
+            <View style={styles.recentVisitorsGrid}>
+           {recentVisitors.slice(0, 3).map((v) => (
+  <View key={v._id} style={styles.recentVisitorTile}>
+    {v.photoUrl ? (
+      <Image source={{ uri: v.photoUrl }} style={styles.recentVisitorPhoto} />
+    ) : (
+      <View style={[styles.recentVisitorIcon, { backgroundColor: colors.primaryContainer }]}>
+        <Ionicons name="person-outline" size={22} color={colors.primary} />
+      </View>
+    )}
+    <Text style={styles.recentVisitorName} numberOfLines={1}>
+      {v.name}
+    </Text>
+  </View>
+))}
+              <TouchableOpacity
+                style={styles.recentVisitorTile}
+                activeOpacity={0.75}
+                onPress={() => navigation?.navigate?.(SCREENS.RESIDENT_VISITORS)}
+              >
+                <View style={[styles.recentVisitorIcon, { backgroundColor: '#546E7A18' }]}>
+                  <Ionicons name="arrow-forward-outline" size={22} color="#546E7A" />
+                </View>
+                <Text style={[styles.recentVisitorName, { color: '#546E7A' }]}>View More</Text>
+              </TouchableOpacity>
+            </View>
+          </Surface>
         )}
-
         {/* ── Recent Notices ── */}
         <Text style={styles.sectionTitle}>Recent Notices</Text>
         {isLoading ? (
@@ -335,6 +462,13 @@ export default function ResidentDashboardScreen({ navigation }) {
           </View>
         )}
       </ScrollView>
+
+      {/* All Actions Sheet */}
+      <AllActionsSheet
+        visible={sheetVisible}
+        onClose={() => setSheetVisible(false)}
+        onNavigate={(screen) => navigation?.navigate?.(screen)}
+      />
 
       {/* Message Modal */}
       {selectedGuard && (
@@ -360,52 +494,77 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
+    paddingTop: 18,
+    paddingBottom: 14,
+    paddingHorizontal: 18,
+    elevation: 3,
+    shadowColor: '#4361EE',
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F0F1FF',
   },
-  heroTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 14,
-  },
-  greetingSmall: { fontSize: 14, color: '#757575', marginBottom: 4 },
-  greetingName: { fontSize: 22, fontWeight: '800', color: '#1A1A2E', letterSpacing: -0.3 },
-  flatBadge: {
+  heroRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 6,
-    backgroundColor: '#EEF2FF',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 20,
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  flatBadgeText: { fontSize: 12, fontWeight: '600' },
-  avatarCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#6366F1',
+  heroGreeting: {
+    fontSize: 12,
+    color: '#9E9E9E',
+    fontWeight: '500',
+    marginBottom: 3,
+    letterSpacing: 0.2,
+  },
+  heroName: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1A1A2E',
+    letterSpacing: -0.3,
+  },
+  heroAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#4361EE',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
-  avatarLetter: { color: '#fff', fontSize: 22, fontWeight: '800' },
-  dutyPill: {
+  heroAvatarLetter: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  // Small dot in corner to hint it's tappable / profile
+  profileDot: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#4CAF50',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  heroFlatBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: '#EEF1FF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
-  dutyPillText: { fontSize: 13, fontWeight: '700' },
+  heroFlatText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#4361EE',
+  },
 
   // Section
   sectionTitle: {
@@ -433,25 +592,19 @@ const styles = StyleSheet.create({
   },
   onDutyBadgeText: { color: '#2E7D32', fontSize: 12, fontWeight: '700' },
 
-  // Stats
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    paddingHorizontal: 16,
-  },
-
   // Quick Actions
-  quickActionsRow: {
-    flexDirection: 'row',
+  quickActionsCard: {
     marginHorizontal: 16,
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
     backgroundColor: '#fff',
-    justifyContent: 'space-around',
   },
-  quickAction: { alignItems: 'center', gap: 6, flex: 1 },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  quickAction: { alignItems: 'center', gap: 6, width: '25%', paddingVertical: 10, paddingHorizontal: 4 },
   quickActionIcon: {
     width: 52,
     height: 52,
@@ -459,7 +612,63 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  quickActionLabel: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  quickActionLabel: { fontSize: 10.5, fontWeight: '600', textAlign: 'center', color: '#555' },
+  moreBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#546E7A',
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    minWidth: 22,
+    alignItems: 'center',
+  },
+  moreBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
+
+  // All Actions Sheet
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  sheetContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingTop: 12,
+    paddingBottom: 36,
+    paddingHorizontal: 8,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E0E0E0',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  sheetHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  sheetTitle: { fontSize: 17, fontWeight: '800', color: '#1A1A2E' },
+  sheetGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  sheetAction: { alignItems: 'center', gap: 7, width: '25%', paddingVertical: 12, paddingHorizontal: 4 },
+  sheetActionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetActionLabel: { fontSize: 11, fontWeight: '600', textAlign: 'center', color: '#444' },
 
   // Guards
   guardsList: { paddingHorizontal: 16, gap: 10 },
@@ -555,4 +764,42 @@ const styles = StyleSheet.create({
   sendBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
   list: { paddingHorizontal: 16, gap: 10 },
+
+ // Recent Visitors — single card, Quick-Actions style grid (3 + View More)
+  recentVisitorsCard: {
+    marginHorizontal: 16,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    backgroundColor: '#fff',
+  },
+  recentVisitorsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  recentVisitorTile: {
+    alignItems: 'center',
+    gap: 6,
+    width: '25%',
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  recentVisitorIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recentVisitorName: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#555',
+  },
+  recentVisitorPhoto: {
+  width: 52,
+  height: 52,
+  borderRadius: 16,
+},
 });
