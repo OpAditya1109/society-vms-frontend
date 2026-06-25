@@ -3,6 +3,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import {
   View, FlatList, StyleSheet, TouchableOpacity,
   RefreshControl, TextInput, KeyboardAvoidingView, Platform,
+  Image, ActivityIndicator,
 } from 'react-native';
 import {
   Text, useTheme, Appbar, Modal, Portal, Divider,
@@ -15,11 +16,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import Toast from 'react-native-toast-message';
+import * as ImagePicker from 'expo-image-picker';
 
 import {
   useCommunityPosts, useMyPosts, useCreatePost,
   useDeletePost, useToggleLike, useAddComment, useDeleteComment,
 } from '../../hooks/useCommunity';
+import { communityService } from '../../api/services/communityService';
 import { AppButton, AppInput, EmptyState, ErrorState } from '../../components/common';
 import { useSelector } from 'react-redux';
 
@@ -96,6 +99,15 @@ function PostCard({ post, onLike, onDelete, onOpenDetail, currentUserId, colors 
           <Text style={{ fontSize: 10, color: cat.color, fontWeight: '700' }}>{cat.label}</Text>
         </View>
       </View>
+
+      {/* Post image (Instagram-style, full width) */}
+      {!!post.imageUrl && (
+        <Image
+          source={{ uri: post.imageUrl }}
+          style={styles.postImage}
+          resizeMode="cover"
+        />
+      )}
 
       {/* Body */}
       <Text variant="bodyMedium" numberOfLines={3} style={[styles.cardBody, { color: colors.onSurface }]}>
@@ -181,6 +193,15 @@ function PostDetailModal({ visible, post, onDismiss, currentUserId, colors }) {
           </View>
 
           <Divider />
+
+          {/* Post image (full width) */}
+          {!!post.imageUrl && (
+            <Image
+              source={{ uri: post.imageUrl }}
+              style={styles.detailImage}
+              resizeMode="cover"
+            />
+          )}
 
           {/* Body */}
           <Text variant="bodyMedium" style={[styles.detailBody, { color: colors.onSurface }]}>
@@ -278,6 +299,12 @@ export default function CommunityScreen() {
   const [detailPost,   setDetailPost]   = useState(null);
   const [refreshing,   setRefreshing]   = useState(false);
 
+  // ── Post image state ──────────────────────────────────────────────────────
+  const [imageUri,     setImageUri]     = useState(null); // local preview uri
+  const [imageUrl,     setImageUrl]     = useState(null); // uploaded Cloudinary url
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
+  const [imageError,   setImageError]   = useState(null);
+
   const {
     data: feedData, isLoading: feedLoading, isError: feedError,
     error: feedErr, refetch: refetchFeed,
@@ -304,6 +331,67 @@ export default function CommunityScreen() {
 
   const watchCategory = watch('category');
   const showContact   = watchCategory === 'event' || watchCategory === 'business';
+
+  // ── Image picker (gallery only) ────────────────────────────────────────────
+  const handlePickImage = async () => {
+    setImageError(null);
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      setImageError('Gallery permission is required to add a photo.');
+      Toast.show({
+        type: 'error',
+        text1: 'Permission Required',
+        text2: 'Please enable photo library access in device Settings.',
+      });
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'Images',
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+      });
+
+      if (result.canceled) return;
+
+      const uri = result.assets[0].uri;
+      setImageUri(uri);
+      setImageUrl(null);
+      await uploadImage(uri);
+    } catch (err) {
+      console.error('[CommunityImage] Picker error:', err);
+      setImageError('Failed to open gallery. Please try again.');
+    }
+  };
+
+  const uploadImage = async (uri) => {
+    setIsUploadingImg(true);
+    setImageError(null);
+    try {
+      const response = await communityService.uploadCommunityPhoto(uri);
+      if (response?.success && response?.data?.photoUrl) {
+        setImageUrl(response.data.photoUrl);
+      } else {
+        throw new Error('Unexpected response from server.');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Image upload failed. Please try again.';
+      setImageError(msg);
+      setImageUrl(null);
+      Toast.show({ type: 'error', text1: 'Upload Failed', text2: msg });
+    } finally {
+      setIsUploadingImg(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageUri(null);
+    setImageUrl(null);
+    setImageError(null);
+  };
 
   const onSubmit = (values) => {
     // ✅ Validate category is truly selected
@@ -342,6 +430,7 @@ export default function CommunityScreen() {
       body: values.body.trim(),
       category: values.category.trim(),
       ...(values.contactInfo?.trim() && { contactInfo: values.contactInfo.trim() }),
+      ...(imageUrl && { imageUrl }),
     };
 
     console.log('📤 Submitting community post:', payload); // For debugging
@@ -349,6 +438,9 @@ export default function CommunityScreen() {
     createMutation.mutate(payload, {
       onSuccess: () => {
         reset();
+        setImageUri(null);
+        setImageUrl(null);
+        setImageError(null);
         setShowForm(false);
         setTab('feed');
       },
@@ -534,7 +626,7 @@ export default function CommunityScreen() {
       <Portal>
         <Modal
           visible={showForm}
-          onDismiss={() => { setShowForm(false); reset(); }}
+          onDismiss={() => { setShowForm(false); reset(); setImageUri(null); setImageUrl(null); setImageError(null); }}
           contentContainerStyle={[styles.modal, { backgroundColor: colors.surface }]}
         >
           <Text variant="titleMedium" style={styles.modalTitle}>New Community Post</Text>
@@ -608,6 +700,59 @@ export default function CommunityScreen() {
             )}
           />
 
+          {/* Photo (optional) */}
+          <Text variant="labelSmall" style={{ color: colors.onSurfaceVariant, marginTop: 4, marginBottom: 6 }}>
+            Photo (optional)
+          </Text>
+          {imageUri ? (
+            <View style={styles.imagePreviewWrap}>
+              <Image source={{ uri: imageUri }} style={styles.imagePreview} resizeMode="cover" />
+
+              {isUploadingImg && (
+                <View style={styles.imageUploadOverlay}>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={{ color: '#fff', fontSize: 12, marginTop: 4 }}>Uploading…</Text>
+                </View>
+              )}
+
+              {!isUploadingImg && (
+                <TouchableOpacity
+                  style={styles.imageRemoveBtn}
+                  onPress={handleRemoveImage}
+                >
+                  <Ionicons name="close" size={16} color="#fff" />
+                </TouchableOpacity>
+              )}
+
+              {!isUploadingImg && !imageUrl && (
+                <TouchableOpacity
+                  style={[styles.imageRetryBtn, { borderColor: colors.primary }]}
+                  onPress={() => uploadImage(imageUri)}
+                >
+                  <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 12 }}>
+                    ↺  Retry upload
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.imagePickBtn, { borderColor: imageError ? colors.error : colors.outlineVariant, backgroundColor: colors.surfaceVariant }]}
+              onPress={handlePickImage}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="image-outline" size={22} color={colors.onSurfaceVariant} />
+              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft: 8 }}>
+                Add a photo from gallery
+              </Text>
+            </TouchableOpacity>
+          )}
+          {!!imageError && (
+            <Text variant="bodySmall" style={{ color: colors.error, marginTop: 4 }}>
+              {imageError}
+            </Text>
+          )}
+
           {/* Contact info — shown for event/business */}
           {showContact && (
             <Controller
@@ -628,7 +773,7 @@ export default function CommunityScreen() {
             <AppButton
               label="Cancel"
               mode="outlined"
-              onPress={() => { setShowForm(false); reset(); }}
+              onPress={() => { setShowForm(false); reset(); setImageUri(null); setImageUrl(null); setImageError(null); }}
               style={{ flex: 1 }}
               disabled={createMutation.isPending}
             />
@@ -636,6 +781,7 @@ export default function CommunityScreen() {
               label="Post"
               onPress={handleSubmit(onSubmit)}
               loading={createMutation.isPending}
+              disabled={isUploadingImg}
               style={{ flex: 2 }}
             />
           </View>
@@ -664,7 +810,8 @@ const styles = StyleSheet.create({
 
   card:          { borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, marginBottom: 12, overflow: 'hidden' },
   cardHeader:    { flexDirection: 'row', alignItems: 'center', padding: 12 },
-  cardBody:      { paddingHorizontal: 12, paddingBottom: 10, lineHeight: 20 },
+  postImage:     { width: '100%', height: 220, backgroundColor: '#eee' },
+  cardBody:      { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10, lineHeight: 20 },
   cardFooter:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, gap: 16 },
   footerAction:  { flexDirection: 'row', alignItems: 'center' },
 
@@ -678,8 +825,16 @@ const styles = StyleSheet.create({
   catGrid:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   catChipLarge:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
 
+  imagePickBtn:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', paddingVertical: 18, marginBottom: 6 },
+  imagePreviewWrap:   { borderRadius: 12, overflow: 'hidden', marginBottom: 6, position: 'relative' },
+  imagePreview:       { width: '100%', height: 180, backgroundColor: '#eee' },
+  imageUploadOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center' },
+  imageRemoveBtn:     { position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center' },
+  imageRetryBtn:      { position: 'absolute', bottom: 8, left: 8, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.92)' },
+
   detailModal:   { margin: 16, borderRadius: 20, maxHeight: '90%' },
   detailHeader:  { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 12 },
+  detailImage:   { width: '100%', height: 240, backgroundColor: '#eee' },
   detailBody:    { padding: 16, paddingTop: 10, lineHeight: 22 },
   commentRow:    { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start' },
   commentInput:  { flexDirection: 'row', alignItems: 'center', padding: 10, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },

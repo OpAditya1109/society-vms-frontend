@@ -45,4 +45,27 @@ export const communityService = {
 
   togglePin: (id) =>
     api.patch(`/community/${id}/pin`).then((r) => r.data),
+
+  /**
+   * Upload a community post image to Cloudinary via backend.
+   * @param {string} imageUri  Local URI from expo-image-picker
+   * @returns {Promise<{ photoUrl: string, publicId: string }>}
+   */
+  uploadCommunityPhoto: async (imageUri) => {
+    const formData = new FormData();
+    const filename = imageUri.split('/').pop();
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+    formData.append('photo', {
+      uri: imageUri,
+      name: filename ?? 'community_photo.jpg',
+      type,
+    });
+
+    const response = await api.post('/upload/community-photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data; // { success, data: { photoUrl, publicId } }
+  },
 };
