@@ -6,13 +6,15 @@ import {
 import { visitorService } from '../../api/services/visitorService';
 
 export default function OtpVerifyScreen({ route, navigation }) {
-  const { visitorId, visitorMobile, visitorName } = route.params;
+  const { visitorId, visitorMobile, visitorName, otpSendFailed } = route.params;
 
   const [otp, setOtp]           = useState(['', '', '', '', '', '']);
   const [loading, setLoading]   = useState(false);
   const [resending, setResending] = useState(false);
-  const [countdown, setCountdown] = useState(30);
-  const [canResend, setCanResend] = useState(false);
+  // If the initial SMS failed to send, let the guard resend immediately
+  // instead of waiting out the 30s countdown for a message that never arrived.
+  const [countdown, setCountdown] = useState(otpSendFailed ? 0 : 30);
+  const [canResend, setCanResend] = useState(!!otpSendFailed);
   const inputs = useRef([]);
 
   // Countdown timer for resend
@@ -90,6 +92,14 @@ export default function OtpVerifyScreen({ route, navigation }) {
           <Text style={styles.mobile}>{maskedMobile}</Text>
         </Text>
 
+        {!!otpSendFailed && (
+          <View style={styles.warningBanner}>
+            <Text style={styles.warningText}>
+              ⚠ We couldn't deliver the OTP SMS automatically. Please tap "Resend OTP" below to try again.
+            </Text>
+          </View>
+        )}
+
         <Text style={styles.label}>Enter 6-digit OTP</Text>
         <View style={styles.otpRow}>
           {otp.map((digit, i) => (
@@ -154,4 +164,6 @@ const styles = StyleSheet.create({
   resendBtn:    { alignItems: 'center', paddingVertical: 8 },
   resendText:   { fontSize: 14, color: '#2563EB', fontWeight: '600' },
   resendDisabled: { color: '#aaa' },
+  warningBanner: { backgroundColor: '#FFF3E0', borderRadius: 10, padding: 12, marginBottom: 18, borderWidth: 1, borderColor: '#FFB74D' },
+  warningText:  { color: '#E65100', fontSize: 13, fontWeight: '600', textAlign: 'center', lineHeight: 18 },
 });

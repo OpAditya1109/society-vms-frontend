@@ -207,6 +207,7 @@ const handleCapturePhoto = async () => {
             visitorId:     result.data._id,
             visitorMobile: values.mobile,
             visitorName:   values.name,
+            otpSendFailed: !!result.data.otpSendFailed,
           });
         },
       },
