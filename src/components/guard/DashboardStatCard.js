@@ -4,16 +4,6 @@ import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Surface, Text, useTheme } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 
-/**
- * DashboardStatCard — wide stat card for guard dashboard.
- *
- * @param {string}        props.title
- * @param {string|number} props.value
- * @param {string}        props.icon       Ionicons name
- * @param {string}        [props.color]    Accent colour
- * @param {string}        [props.subLabel] Secondary info line
- * @param {function}      [props.onPress]
- */
 export default function DashboardStatCard({ title, value, icon, color, subLabel, onPress }) {
   const { colors } = useTheme();
   const accent = color ?? '#E65100';
@@ -21,64 +11,76 @@ export default function DashboardStatCard({ title, value, icon, color, subLabel,
 
   return (
     <Wrapper onPress={onPress} activeOpacity={0.75} style={styles.outer}>
+      {/* Surface has borderRadius but NO overflow:hidden — keeps shadow intact on Android */}
       <Surface style={[styles.surface, { backgroundColor: colors.surface }]} elevation={2}>
-        <View style={styles.row}>
-          <View style={[styles.iconWrap, { backgroundColor: accent + '1A' }]}>
-            <Ionicons name={icon} size={26} color={accent} />
-          </View>
-          <View style={styles.textBlock}>
-            <Text variant="displaySmall" style={[styles.value, { color: accent }]}>
+        {/* Inner View carries overflow:hidden so the accent strip clips to the card's corners */}
+        <View style={styles.clip}>
+          <View style={[styles.strip, { backgroundColor: accent }]} />
+          <View style={styles.inner}>
+            <View style={[styles.iconWrap, { backgroundColor: accent + '18' }]}>
+              <Ionicons name={icon} size={20} color={accent} />
+            </View>
+            <Text style={[styles.value, { color: accent }]} numberOfLines={1}>
               {value ?? '—'}
             </Text>
-            <Text variant="labelMedium" style={[styles.label, { color: colors.onSurfaceVariant }]}>
+            <Text style={[styles.label, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
               {title}
             </Text>
             {!!subLabel && (
-              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginTop: 2 }}>
+              <Text style={[styles.subLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
                 {subLabel}
               </Text>
             )}
           </View>
         </View>
-        <View style={[styles.bar, { backgroundColor: accent }]} />
       </Surface>
     </Wrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: { flex: 1 },
-  surface: {
-    borderRadius: 16,
-    padding: 18,
-    overflow: 'hidden',
+  outer: {
+    flex: 1,
+    marginHorizontal: 4,
   },
-  row: {
-    flexDirection: 'row',
+  surface: {
+    borderRadius: 14,
+    // ← NO overflow: 'hidden' here — that kills Android shadow
+  },
+  clip: {
+    borderRadius: 14,
+    overflow: 'hidden', // ← overflow lives on a plain View, not Surface
+  },
+  strip: {
+    height: 3,
+    width: '100%',
+  },
+  inner: {
+    padding: 12,
     alignItems: 'center',
-    gap: 16,
   },
   iconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 8,
   },
-  textBlock: { flex: 1 },
-  value: { fontWeight: '800', lineHeight: 40 },
+  value: {
+    fontSize: 26,
+    fontWeight: '800',
+    lineHeight: 30,
+  },
   label: {
+    fontSize: 11,
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     marginTop: 2,
   },
-  bar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+  subLabel: {
+    fontSize: 10,
+    marginTop: 2,
   },
 });

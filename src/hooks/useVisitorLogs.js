@@ -7,6 +7,10 @@ import { QUERY_KEYS } from '../constants';
 /**
  * Paginated visitor logs for guard.
  * Endpoint: GET /api/visitors?page=N&limit=15
+ *
+ * Auto-refresh strategy:
+ *  - refetchInterval: 20s  → new visitors / status changes appear without pull-to-refresh
+ *  - staleTime: 0          → navigating back to the screen always triggers a refetch
  */
 export function useVisitorLogs(params = {}) {
   return useInfiniteQuery({
@@ -19,7 +23,9 @@ export function useVisitorLogs(params = {}) {
       const { page, limit, total } = meta;
       return page * limit < total ? page + 1 : undefined;
     },
-    staleTime: 60 * 1000,
+    staleTime: 0,
+    refetchInterval: 20_000,          // poll every 20 s — catches approvals, checkouts
+    refetchIntervalInBackground: false, // pause polling when app is backgrounded
   });
 }
 

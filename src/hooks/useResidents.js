@@ -11,7 +11,9 @@ export function useResidents({ status, search } = {}) {
   return useQuery({
     queryKey: QUERY_KEYS.RESIDENTS(status),
     queryFn:  () => residentService.getResidents({ status, search, limit: 100 }),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
 }
 

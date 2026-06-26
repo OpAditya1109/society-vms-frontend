@@ -183,14 +183,14 @@ export default function ProfileScreen() {
           <Text variant="titleSmall" style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>Contact Information</Text>
           <Divider style={{ marginBottom: 12 }} />
           <ProfileRow icon="mail-outline" label="Email"  value={user?.email}  colors={colors} />
-          <ProfileRow icon="phone-outline" label="Mobile" value={user?.mobile} colors={colors} />
+          <ProfileRow icon="call-outline" label="Mobile" value={user?.mobile} colors={colors} />
         </Surface>
 
         {/* Account */}
         <Surface style={[styles.sectionCard, { backgroundColor: colors.surface }]} elevation={2}>
           <Text variant="titleSmall" style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>Account Details</Text>
           <Divider style={{ marginBottom: 12 }} />
-          <ProfileRow icon="account-outline"   label="Name"        value={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()} colors={colors} />
+          <ProfileRow icon="person-outline"   label="Name"        value={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()} colors={colors} />
           <ProfileRow icon="shield-outline"   label="Role"        value={user?.role}       colors={colors} />
           <ProfileRow icon="home-outline"     label="Flat Number" value={user?.flatNumber} colors={colors} />
           <ProfileRow icon="calendar-outline" label="Member Since"
@@ -228,7 +228,7 @@ export default function ProfileScreen() {
                     value={value}
                     onChangeText={onChange}
                     error={errors.firstName?.message}
-                    left="account-outline"
+                    left="person-outline"
                   />
                 )}
               />
@@ -241,7 +241,7 @@ export default function ProfileScreen() {
                     value={value}
                     onChangeText={onChange}
                     error={errors.lastName?.message}
-                    left="account-outline"
+                    left="person-outline"
                   />
                 )}
               />
@@ -255,7 +255,7 @@ export default function ProfileScreen() {
                     onChangeText={onChange}
                     keyboardType="phone-pad"
                     error={errors.mobile?.message}
-                    left="phone-outline"
+                    left="call-outline"
                   />
                 )}
               />
@@ -275,7 +275,7 @@ export default function ProfileScreen() {
                     onChangeText={onChange}
                     secureText
                     error={errors.currentPassword?.message}
-                    left="lock-closed-outline"
+                    left="lock-closed"
                   />
                 )}
               />

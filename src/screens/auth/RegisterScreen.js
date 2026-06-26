@@ -279,7 +279,7 @@ export default function RegisterScreen() {
               value={form.firstName}
               onChangeText={set('firstName')}
               error={errors.firstName}
-              left="account-outline"
+              left="person-outline"
               style={styles.field}
             />
 
@@ -288,7 +288,7 @@ export default function RegisterScreen() {
               value={form.lastName}
               onChangeText={set('lastName')}
               error={errors.lastName}
-              left="account-outline"
+              left="person-outline"
               style={styles.field}
             />
 

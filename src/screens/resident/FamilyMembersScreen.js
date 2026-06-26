@@ -12,13 +12,13 @@ import { EmptyState, LoadingScreen } from '../../components/common';
 
 const RELATIONS = ['spouse','child','parent','sibling','grandparent','grandchild','in-law','cousin','other'];
 const RELATION_COLORS = { spouse:'#E91E63', child:'#FF9800', parent:'#3F51B5', sibling:'#009688', grandparent:'#607D8B', grandchild:'#FF5722', 'in-law':'#795548', cousin:'#9C27B0', other:'#757575' };
-const RELATION_ICONS  = { spouse:'heart-outline', child:'happy-outline', parent:'account-outline', sibling:'people-outline', grandparent:'account-outline', grandchild:'happy-outline', 'in-law':'people-outline', cousin:'people-outline', other:'account-outline' };
+const RELATION_ICONS  = { spouse:'heart-outline', child:'happy-outline', parent:'person-outline', sibling:'people-outline', grandparent:'person-outline', grandchild:'happy-outline', 'in-law':'people-outline', cousin:'people-outline', other:'person-outline' };
 
 const EMPTY_FORM = { name:'', relation:'spouse', phone:'', email:'', dob:'', photoUrl:'' };
 
 function MemberCard({ member, colors, onEdit, onDelete }) {
   const color = RELATION_COLORS[member.relation] || '#757575';
-  const icon  = RELATION_ICONS[member.relation]  || 'account-outline';
+  const icon  = RELATION_ICONS[member.relation]  || 'person-outline';
   const initials = member.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
   return (
     <Surface style={[styles.card, { backgroundColor: colors.surface }]} elevation={2}>
@@ -30,7 +30,7 @@ function MemberCard({ member, colors, onEdit, onDelete }) {
             <Ionicons name={icon} size={12} color={color} />
             <Text style={{ color, fontSize:12, fontWeight:'600', marginLeft:4, textTransform:'capitalize' }}>{member.relation}</Text>
           </View>
-          {member.phone && <View style={styles.metaRow}><Ionicons name="phone-outline" size={12} color={colors.onSurfaceVariant} /><Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft:4 }}>{member.phone}</Text></View>}
+          {member.phone && <View style={styles.metaRow}><Ionicons name="call-outline" size={12} color={colors.onSurfaceVariant} /><Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft:4 }}>{member.phone}</Text></View>}
           {member.dob   && <View style={styles.metaRow}><Ionicons name="calendar-outline" size={12} color={colors.onSurfaceVariant} /><Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft:4 }}>{new Date(member.dob).toLocaleDateString('en-IN')}</Text></View>}
         </View>
         <View style={styles.cardActions}>

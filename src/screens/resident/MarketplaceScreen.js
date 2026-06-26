@@ -400,7 +400,7 @@ function StatusQuickChange({ listingId, currentStatus, colors }) {
   const updateMutation  = useUpdateListing(listingId);
 
   const STATUS_OPTIONS = [
-    { value: 'active',    label: 'Active',    icon: 'check-circle-outline' },
+    { value: 'active',    label: 'Active',    icon: 'checkmark-circle-outline' },
     { value: 'sold',      label: 'Sold',      icon: 'tag-off-outline' },
     { value: 'rented',    label: 'Rented',    icon: 'home-lock-outline' },
     { value: 'withdrawn', label: 'Withdrawn', icon: 'close-circle-outline' },

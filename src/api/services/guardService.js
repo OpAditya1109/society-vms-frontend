@@ -25,4 +25,8 @@ export const guardService = {
   /** Guard: reply to a resident message */
   replyToMessage: (messageId, reply) =>
     api.patch(`/guards/messages/${messageId}/reply`, { reply }).then((r) => r.data),
+
+  /** Guard: get own performance stats (visitors logged + SOS attended/rate) */
+  getMyStats: () =>
+    api.get('/guards/my-stats').then((r) => r.data),
 };

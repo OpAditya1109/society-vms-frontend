@@ -31,7 +31,7 @@ const CATEGORIES = [
   { value: 'general',      label: 'General',       icon: 'chatbubble-ellipses-outline', color: '#607D8B' },
   { value: 'event',        label: 'Event',          icon: 'calendar-outline',            color: '#7B1FA2' },
   { value: 'business',     label: 'Business',       icon: 'briefcase-outline',           color: '#1565C0' },
-  { value: 'announcement', label: 'Announcement',   icon: 'megaphone-outline',           color: '#E65100' },
+  { value: 'announcement', label: 'Announcement',   icon: 'megacall-outline',           color: '#E65100' },
   { value: 'lostfound',    label: 'Lost & Found',   icon: 'search-outline',              color: '#00897B' },
   { value: 'helpneeded',   label: 'Help Needed',    icon: 'hand-left-outline',           color: '#C62828' },
 ];
@@ -117,7 +117,7 @@ function PostCard({ post, onLike, onDelete, onOpenDetail, currentUserId, colors 
       {/* Contact info (for event/business) */}
       {!!post.contactInfo && (
         <View style={[styles.contactRow, { backgroundColor: colors.surfaceVariant }]}>
-          <Ionicons name="phone-outline" size={13} color={colors.onSurfaceVariant} />
+          <Ionicons name="call-outline" size={13} color={colors.onSurfaceVariant} />
           <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft: 4 }}>
             {post.contactInfo}
           </Text>
@@ -213,7 +213,7 @@ function PostDetailModal({ visible, post, onDismiss, currentUserId, colors }) {
             {/* Contact info */}
             {!!post.contactInfo && (
               <View style={[styles.contactRow, { backgroundColor: colors.surfaceVariant, marginHorizontal: 16, marginBottom: 12 }]}>
-                <Ionicons name="phone-outline" size={13} color={colors.onSurfaceVariant} />
+                <Ionicons name="call-outline" size={13} color={colors.onSurfaceVariant} />
                 <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft: 4 }}>{post.contactInfo}</Text>
               </View>
             )}
@@ -533,7 +533,7 @@ export default function CommunityScreen() {
       <View style={styles.tabRow}>
         {[
           { value: 'feed', label: 'Community Feed', icon: 'newspaper-outline' },
-          { value: 'mine', label: 'My Posts',       icon: 'account-outline'    },
+          { value: 'mine', label: 'My Posts',       icon: 'person-outline'    },
         ].map((t) => (
           <TouchableOpacity
             key={t.value}

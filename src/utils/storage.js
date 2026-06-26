@@ -2,10 +2,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEYS = {
-  ACCESS_TOKEN:  '@society_vms:access_token',
-  REFRESH_TOKEN: '@society_vms:refresh_token',
-  USER:          '@society_vms:user',
-  ONBOARDED:     '@society_vms:onboarded',
+  ACCESS_TOKEN:    '@society_vms:access_token',
+  REFRESH_TOKEN:   '@society_vms:refresh_token',
+  USER:            '@society_vms:user',
+  ONBOARDED:       '@society_vms:onboarded',
+  PENDING_VISITOR: '@society_vms:pending_visitor', // ← NEW: survives app kill
 };
 
 // ── Token helpers ─────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ export const clearAuthStorage = async () => {
     KEYS.ACCESS_TOKEN,
     KEYS.REFRESH_TOKEN,
     KEYS.USER,
+    KEYS.PENDING_VISITOR, // ← also clear pending visitor on logout
   ]);
 };
 
@@ -63,6 +65,21 @@ export const setOnboarded = async () => {
 export const hasOnboarded = async () => {
   const val = await AsyncStorage.getItem(KEYS.ONBOARDED);
   return val === 'true';
+};
+
+// ── Pending visitor helpers (persists across app kill) ────────────────────
+
+export const savePendingVisitor = async (visitor) => {
+  await AsyncStorage.setItem(KEYS.PENDING_VISITOR, JSON.stringify(visitor));
+};
+
+export const getSavedPendingVisitor = async () => {
+  const raw = await AsyncStorage.getItem(KEYS.PENDING_VISITOR);
+  return raw ? JSON.parse(raw) : null;
+};
+
+export const clearPendingVisitor = async () => {
+  await AsyncStorage.removeItem(KEYS.PENDING_VISITOR);
 };
 
 // ── Generic helpers ───────────────────────────────────────────────────────

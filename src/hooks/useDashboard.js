@@ -6,13 +6,16 @@ import { QUERY_KEYS } from '../constants';
 /**
  * Fetches the resident dashboard data.
  * Endpoint: GET /api/dashboard/resident
- * Returns: { stats: { visitorsToday, pendingRequests, noticesCount, complaintsCount },
- *            recentVisitors, recentNotices }
+ *
+ * Polls every 30 s so pending-request counts and recent visitors
+ * stay current automatically.
  */
 export function useResidentDashboard() {
   return useQuery({
     queryKey: QUERY_KEYS.DASHBOARD('resident'),
     queryFn: () => dashboardService.getResidentDashboard(),
-    staleTime: 2 * 60 * 1000, // 2 minutes — dashboard refreshes more often
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
 }

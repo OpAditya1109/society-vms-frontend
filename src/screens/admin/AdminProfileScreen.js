@@ -78,7 +78,7 @@ export default function AdminProfileScreen() {
           </Text>
           <Divider style={{ marginBottom: 12 }} />
           <ProfileRow icon="mail-outline" label="Email"  value={user?.email}  colors={colors} />
-          <ProfileRow icon="phone-outline" label="Mobile" value={user?.mobile} colors={colors} />
+          <ProfileRow icon="call-outline" label="Mobile" value={user?.mobile} colors={colors} />
         </Surface>
 
         {/* Account */}
@@ -88,7 +88,7 @@ export default function AdminProfileScreen() {
           </Text>
           <Divider style={{ marginBottom: 12 }} />
           <ProfileRow
-            icon="account-outline"
+            icon="person-outline"
             label="Name"
             value={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()}
             colors={colors}

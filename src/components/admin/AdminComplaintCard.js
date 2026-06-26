@@ -9,7 +9,7 @@ const STATUS_CONFIG = {
   [COMPLAINT_STATUS.OPEN]:        { label: 'Open',        color: '#C62828', icon: 'alert-circle-outline' },
   [COMPLAINT_STATUS.IN_PROGRESS]: { label: 'In Progress', color: '#F9A825', icon: 'hourglass-outline' },
   [COMPLAINT_STATUS.RESOLVED]:    { label: 'Resolved',    color: '#2E7D32', icon: 'checkmark-circle-outline' },
-  [COMPLAINT_STATUS.CLOSED]:      { label: 'Closed',      color: '#546E7A', icon: 'lock-closed-outline' },
+  [COMPLAINT_STATUS.CLOSED]:      { label: 'Closed',      color: '#546E7A', icon: 'lock-closed' },
 };
 
 /**
@@ -70,7 +70,7 @@ export default function AdminComplaintCard({ complaint, onUpdateStatus }) {
       <View style={styles.metaRow}>
         {residentName && (
           <View style={styles.metaItem}>
-            <Ionicons name="account-outline" size={12} color={colors.onSurfaceVariant} />
+            <Ionicons name="person-outline" size={12} color={colors.onSurfaceVariant} />
             <Text variant="labelSmall" style={{ color: colors.onSurfaceVariant, marginLeft: 3 }}>
               {residentName}
             </Text>

@@ -20,7 +20,7 @@ const TYPE_CONFIG = {
   nanny:    { icon:'happy-outline',      color:'#E91E63' },
   watchman: { icon:'shield-outline',     color:'#607D8B' },
   gardener: { icon:'leaf-outline',       color:'#4CAF50' },
-  other:    { icon:'account-outline',     color:'#757575' },
+  other:    { icon:'person-outline',     color:'#757575' },
 };
 const ATT_COLORS = { present:'#2E7D32', absent:'#C62828', 'half-day':'#F9A825' };
 const EMPTY_FORM = { name:'', helpType:'maid', phone:'', aadhaar:'', photoUrl:'', workingDays:['monday','tuesday','wednesday','thursday','friday','saturday'], workTimings:{ startTime:'08:00', endTime:'10:00' } };
@@ -179,7 +179,7 @@ function HelpCard({ help, colors, onEdit, onDelete, onAttendance }) {
             <Ionicons name={cfg.icon} size={12} color={cfg.color} />
             <Text style={{ color: cfg.color, fontSize:12, fontWeight:'600', marginLeft:4, textTransform:'capitalize' }}>{help.helpType}</Text>
           </View>
-          {help.phone && <View style={styles.metaRow}><Ionicons name="phone-outline" size={12} color={colors.onSurfaceVariant} /><Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft:4 }}>{help.phone}</Text></View>}
+          {help.phone && <View style={styles.metaRow}><Ionicons name="call-outline" size={12} color={colors.onSurfaceVariant} /><Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft:4 }}>{help.phone}</Text></View>}
           <View style={styles.metaRow}><Ionicons name="time-outline" size={12} color={colors.onSurfaceVariant} /><Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft:4 }}>{help.workTimings?.startTime} – {help.workTimings?.endTime}</Text></View>
           <View style={{ flexDirection:'row', gap:4, marginTop:4 }}>
             {DAYS.map(d => (

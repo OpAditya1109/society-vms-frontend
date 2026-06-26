@@ -3,7 +3,7 @@ import React, { useCallback, useState, useMemo } from 'react';
 import {
   View, FlatList, StyleSheet,
   RefreshControl, ActivityIndicator,
-  TextInput, TouchableOpacity, ScrollView, Alert,
+  TextInput, TouchableOpacity, Alert,
 } from 'react-native';
 import { Text, useTheme, Appbar, FAB, Surface } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,15 +17,6 @@ import { EmptyState, ErrorState } from '../../components/common';
 import { SCREENS, VISITOR_STATUS } from '../../constants';
 
 const GUARD_ACCENT = '#E65100';
-
-const STATUS_FILTERS = [
-  { label: 'All', value: null },
-  { label: 'Pending', value: VISITOR_STATUS.PENDING },
-  { label: 'Approved', value: VISITOR_STATUS.APPROVED },
-  { label: 'Checked In', value: VISITOR_STATUS.CHECKED_IN },
-  { label: 'Checked Out', value: VISITOR_STATUS.CHECKED_OUT },
-  { label: 'Rejected', value: VISITOR_STATUS.REJECTED },
-];
 
 function SearchBar({ value, onChange, colors }) {
   return (
@@ -62,28 +53,6 @@ const searchStyles = StyleSheet.create({
     borderWidth: 1,
   },
   input: { flex: 1, fontSize: 15, paddingVertical: 0 },
-});
-
-function StatusChip({ label, active, onPress }) {
-  return (
-    <TouchableOpacity
-      style={[chipStyles.chip, active && chipStyles.chipActive]}
-      onPress={onPress}
-      activeOpacity={0.75}
-    >
-      <Text style={[chipStyles.text, active && chipStyles.textActive]}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
-const chipStyles = StyleSheet.create({
-  chip: {
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: 20, backgroundColor: '#F0F0F0',
-  },
-  chipActive: { backgroundColor: GUARD_ACCENT },
-  text: { fontSize: 12, fontWeight: '600', color: '#555' },
-  textActive: { color: '#fff' },
 });
 
 function DateFilterBar({ fromDate, toDate, onFromDate, onToDate, colors }) {
@@ -160,7 +129,6 @@ export default function VisitorLogsScreen({ navigation }) {
   const { colors } = useTheme();
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState(null);
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
 
@@ -195,10 +163,6 @@ export default function VisitorLogsScreen({ navigation }) {
       );
     }
 
-    if (statusFilter) {
-      list = list.filter((v) => v.status === statusFilter);
-    }
-
     if (fromDate) {
       const from = new Date(fromDate); from.setHours(0, 0, 0, 0);
       list = list.filter((v) => new Date(v.createdAt) >= from);
@@ -210,7 +174,7 @@ export default function VisitorLogsScreen({ navigation }) {
     }
 
     return list;
-  }, [allVisitors, search, statusFilter, fromDate, toDate]);
+  }, [allVisitors, search, fromDate, toDate]);
 
   const onRefresh = useCallback(() => refetch(), [refetch]);
 
@@ -237,7 +201,7 @@ export default function VisitorLogsScreen({ navigation }) {
     );
   }, [checkOutMutation]);
 
-  const activeFiltersCount = [search, statusFilter, fromDate, toDate].filter(Boolean).length;
+  const activeFiltersCount = [search, fromDate, toDate].filter(Boolean).length;
 
   if (isLoading) {
     return (
@@ -276,24 +240,8 @@ export default function VisitorLogsScreen({ navigation }) {
         colors={colors}
       />
 
-      {/* Status chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipsRow}
-      >
-        {STATUS_FILTERS.map((f) => (
-          <StatusChip
-            key={f.label}
-            label={f.label}
-            active={statusFilter === f.value}
-            onPress={() => setStatusFilter(f.value)}
-          />
-        ))}
-      </ScrollView>
-
       {/* Results count */}
-      {(search || statusFilter || fromDate || toDate) && (
+      {(search || fromDate || toDate) && (
         <Text style={[styles.resultCount, { color: colors.onSurfaceVariant }]}>
           {visitors.length} result{visitors.length !== 1 ? 's' : ''}
         </Text>
@@ -325,9 +273,9 @@ export default function VisitorLogsScreen({ navigation }) {
         ListEmptyComponent={
           <EmptyState
             icon="people-outline"
-            title={search || statusFilter || fromDate || toDate ? 'No matching logs' : 'No visitor logs'}
+            title={search || fromDate || toDate ? 'No matching logs' : 'No visitor logs'}
             subtitle={
-              search || statusFilter || fromDate || toDate
+              search || fromDate || toDate
                 ? 'Try adjusting your filters.'
                 : 'Logged visitors will appear here.'
             }
@@ -352,13 +300,15 @@ export default function VisitorLogsScreen({ navigation }) {
   );
 }
 
-// Wrapper card with checkout button shown for CHECKED_IN visitors
+// Wrapper card with checkout button shown for APPROVED (currently-in) visitors.
+// Note: the backend checks visitors out from APPROVED status directly —
+// there's no separate "checked in" state, so we key off APPROVED here.
 function VisitorLogCardWithCheckout({ visitor, onPress, onCheckOut, isCheckingOut }) {
-  const showCheckout = visitor.status === VISITOR_STATUS.CHECKED_IN;
+  const showCheckout = visitor.status === VISITOR_STATUS.APPROVED;
 
   return (
     <View>
-      <VisitorLogCard visitor={visitor} onPress={onPress} />
+      <VisitorLogCard visitor={visitor} onPress={onPress} squareBottom={showCheckout} />
       {showCheckout && (
         <TouchableOpacity
           style={styles.checkoutBtn}
@@ -395,7 +345,6 @@ function Header({ colors, activeFiltersCount }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  chipsRow: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
   resultCount: { fontSize: 12, marginHorizontal: 16, marginBottom: 6 },
   list: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 100 },
   fab: { position: 'absolute', right: 16, bottom: 24, borderRadius: 16 },
@@ -412,8 +361,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     backgroundColor: '#1565C0',
-    marginHorizontal: 0,
-    marginTop: -4,
     paddingVertical: 10,
     borderBottomLeftRadius: 14,
     borderBottomRightRadius: 14,

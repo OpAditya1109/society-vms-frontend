@@ -6,12 +6,29 @@ import { sosService } from '../api/services/sosService';
 const ALERTS_KEY = ['sos-alerts'];
 const MY_KEY     = ['sos-my'];
 
+/**
+ * Guard/admin: live SOS alert list.
+ * Polls every 15 s — already existed, kept as-is (most time-sensitive list).
+ */
 export function useSosAlerts() {
-  return useQuery({ queryKey: ALERTS_KEY, queryFn: () => sosService.getAlerts(), refetchInterval: 15000 });
+  return useQuery({
+    queryKey: ALERTS_KEY,
+    queryFn: () => sosService.getAlerts(),
+    staleTime: 0,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
+  });
 }
 
+/** Resident: own SOS history */
 export function useMySosAlerts() {
-  return useQuery({ queryKey: MY_KEY, queryFn: () => sosService.myAlerts() });
+  return useQuery({
+    queryKey: MY_KEY,
+    queryFn: () => sosService.myAlerts(),
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
 }
 
 export function useTriggerSos() {
@@ -26,7 +43,10 @@ export function useAcknowledgeSos() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id) => sosService.acknowledge(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ALERTS_KEY }); Toast.show({ type: 'success', text1: 'Alert Acknowledged' }); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ALERTS_KEY });
+      Toast.show({ type: 'success', text1: 'Alert Acknowledged' });
+    },
   });
 }
 
@@ -34,6 +54,9 @@ export function useResolveSos() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id) => sosService.resolve(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ALERTS_KEY }); Toast.show({ type: 'success', text1: 'Alert Resolved' }); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ALERTS_KEY });
+      Toast.show({ type: 'success', text1: 'Alert Resolved' });
+    },
   });
-}   
+}

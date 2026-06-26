@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import { useAuth } from '../../hooks/useAuth';
+import { useGuardStats } from '../../hooks/useGuards';
 import { AppButton } from '../../components/common';
 
 const GUARD_ACCENT = '#E65100';
@@ -34,10 +35,50 @@ function ProfileRow({ icon, label, value, colors }) {
   );
 }
 
+function StatTile({ icon, label, value, tint, colors }) {
+  return (
+    <View style={[statStyles.tile, { backgroundColor: tint + '14' }]}>
+      <View style={[statStyles.tileIconWrap, { backgroundColor: tint + '22' }]}>
+        <Ionicons name={icon} size={18} color={tint} />
+      </View>
+      <Text style={[statStyles.tileValue, { color: colors.onSurface }]}>{value}</Text>
+      <Text style={[statStyles.tileLabel, { color: colors.onSurfaceVariant }]}>{label}</Text>
+    </View>
+  );
+}
+
+function RateBar({ label, rate, tint, colors, sublabel }) {
+  const pct = Math.max(0, Math.min(100, rate ?? 0));
+  return (
+    <View style={statStyles.rateRow}>
+      <View style={statStyles.rateHeader}>
+        <Text style={[statStyles.rateLabel, { color: colors.onSurface }]}>{label}</Text>
+        <Text style={[statStyles.ratePct, { color: tint }]}>{pct}%</Text>
+      </View>
+      <View style={[statStyles.rateTrack, { backgroundColor: tint + '1A' }]}>
+        <View style={[statStyles.rateFill, { width: `${pct}%`, backgroundColor: tint }]} />
+      </View>
+      {!!sublabel && (
+        <Text style={[statStyles.rateSub, { color: colors.onSurfaceVariant }]}>{sublabel}</Text>
+      )}
+    </View>
+  );
+}
+
+function formatResponseTime(seconds) {
+  if (seconds == null) return '—';
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s}s`;
+}
+
 export default function GuardProfileScreen() {
   const { colors } = useTheme();
   const user = useSelector(selectCurrentUser);
   const { logout, isLogoutLoading } = useAuth();
+  const { data: statsData, isLoading: statsLoading } = useGuardStats();
+  const stats = statsData?.data;
 
   const initials = [user?.firstName?.[0], user?.lastName?.[0]]
     .filter(Boolean).join('').toUpperCase() || '?';
@@ -71,6 +112,52 @@ export default function GuardProfileScreen() {
           </View>
         </Surface>
 
+        {/* Performance stats */}
+        <Surface style={[styles.detailsCard, { backgroundColor: colors.surface }]} elevation={2}>
+          <Text variant="titleSmall" style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>
+            Performance
+          </Text>
+          <Divider style={{ marginBottom: 14 }} />
+
+          {statsLoading ? (
+            <Text style={{ color: colors.onSurfaceVariant }}>Loading stats…</Text>
+          ) : (
+            <>
+              <View style={statStyles.tileRow}>
+                <StatTile
+                  icon="people"
+                  label="Visitors Logged"
+                  value={stats?.visitors?.totalLogged ?? 0}
+                  tint="#1565C0"
+                  colors={colors}
+                />
+                <StatTile
+                  icon="warning"
+                  label="SOS Attended"
+                  value={stats?.sos?.totalAttended ?? 0}
+                  tint="#C62828"
+                  colors={colors}
+                />
+                <StatTile
+                  icon="timer-outline"
+                  label="Avg Response"
+                  value={formatResponseTime(stats?.sos?.avgResponseSeconds)}
+                  tint={GUARD_ACCENT}
+                  colors={colors}
+                />
+              </View>
+
+              <RateBar
+                label="SOS Attendance Rate"
+                rate={stats?.sos?.attendanceRate}
+                tint="#C62828"
+                colors={colors}
+                sublabel={`${stats?.sos?.totalAttended ?? 0} of ${stats?.sos?.totalInSociety ?? 0} society-wide SOS alerts handled by you`}
+              />
+            </>
+          )}
+        </Surface>
+
         {/* Contact */}
         <Surface style={[styles.detailsCard, { backgroundColor: colors.surface }]} elevation={2}>
           <Text variant="titleSmall" style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>
@@ -78,7 +165,7 @@ export default function GuardProfileScreen() {
           </Text>
           <Divider style={{ marginBottom: 12 }} />
           <ProfileRow icon="mail-outline" label="Email"  value={user?.email}  colors={colors} />
-          <ProfileRow icon="phone-outline" label="Mobile" value={user?.mobile} colors={colors} />
+          <ProfileRow icon="call-outline" label="Mobile" value={user?.mobile} colors={colors} />
         </Surface>
 
         {/* Account */}
@@ -88,7 +175,7 @@ export default function GuardProfileScreen() {
           </Text>
           <Divider style={{ marginBottom: 12 }} />
           <ProfileRow
-            icon="account-outline"
+            icon="person-outline"
             label="Name"
             value={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()}
             colors={colors}
@@ -151,4 +238,39 @@ const rowStyles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   text: { flex: 1 },
+});
+
+const statStyles = StyleSheet.create({
+  tileRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
+  tile: {
+    flex: 1,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    gap: 6,
+  },
+  tileIconWrap: {
+    width: 34, height: 34, borderRadius: 17,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  tileValue: { fontSize: 17, fontWeight: '800' },
+  tileLabel: { fontSize: 10.5, fontWeight: '600', textAlign: 'center' },
+
+  rateRow: { marginBottom: 16 },
+  rateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  rateLabel: { fontSize: 13, fontWeight: '700' },
+  ratePct: { fontSize: 13, fontWeight: '800' },
+  rateTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  rateFill: { height: '100%', borderRadius: 4 },
+  rateSub: { fontSize: 11.5, marginTop: 5, fontWeight: '500' },
 });

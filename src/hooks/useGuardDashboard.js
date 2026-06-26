@@ -6,18 +6,16 @@ import { QUERY_KEYS } from '../constants';
 /**
  * Fetches the guard dashboard data.
  * Endpoint: GET /api/dashboard/guard
- * Returns: {
- *   visitorsWaiting,   – pending approval count
- *   todayEntries,      – total entries today
- *   currentlyInside,   – approved + not checked out
- *   recentEntries,     – last 10 visitor entries
- *   hourlyBreakdown    – array of { _id: hour, count }
- * }
+ *
+ * Polls every 20 s so "visitors waiting" counter and recent entries
+ * update automatically without the guard needing to pull-to-refresh.
  */
 export function useGuardDashboard() {
   return useQuery({
     queryKey: QUERY_KEYS.DASHBOARD('guard'),
     queryFn: () => dashboardService.getGuardDashboard(),
-    staleTime: 60 * 1000,
+    staleTime: 0,
+    refetchInterval: 20_000,
+    refetchIntervalInBackground: false,
   });
 }

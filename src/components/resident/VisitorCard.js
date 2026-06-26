@@ -85,6 +85,13 @@ const photoStyles = StyleSheet.create({
 });
 
 // ── VisitorCard ────────────────────────────────────────────────────────────────
+function formatDateTime(dateStr) {
+  if (!dateStr) return null;
+  return new Date(dateStr).toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+}
+
 export default function VisitorCard({ visitor, onApprove, onReject }) {
   const { colors } = useTheme();
   const [photoVisible, setPhotoVisible] = useState(false);
@@ -113,7 +120,7 @@ export default function VisitorCard({ visitor, onApprove, onReject }) {
           </TouchableOpacity>
         ) : (
           <View style={[styles.avatar, { backgroundColor: colors.primaryContainer }]}>
-            <Ionicons name="account-outline" size={20} color={colors.primary} />
+            <Ionicons name="person-outline" size={20} color={colors.primary} />
           </View>
         )}
 
@@ -152,6 +159,26 @@ export default function VisitorCard({ visitor, onApprove, onReject }) {
           {formattedDate}
         </Text>
       </View>
+
+      {/* Check-in time */}
+      {visitor.checkInTime && (
+        <View style={styles.row}>
+          <Ionicons name="enter-outline" size={14} color="#1565C0" />
+          <Text variant="bodySmall" style={[styles.rowText, { color: colors.onSurfaceVariant }]}>
+            Checked in: {formatDateTime(visitor.checkInTime)}
+          </Text>
+        </View>
+      )}
+
+      {/* Check-out time */}
+      {visitor.checkOutTime && (
+        <View style={styles.row}>
+          <Ionicons name="exit-outline" size={14} color="#546E7A" />
+          <Text variant="bodySmall" style={[styles.rowText, { color: colors.onSurfaceVariant }]}>
+            Checked out: {formatDateTime(visitor.checkOutTime)}
+          </Text>
+        </View>
+      )}
 
       {/* Action buttons — only for pending */}
       {isPending && (onApprove || onReject) && (
@@ -245,4 +272,4 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   actionLabel: { fontSize: 13, fontWeight: '700' },
-}); 
+});

@@ -69,7 +69,7 @@ export default function ResidentCard({
             ) : null}
             {resident.mobile ? (
               <View style={styles.infoRow}>
-                <Ionicons name="phone-outline" size={12} color="#9E9E9E" />
+                <Ionicons name="call-outline" size={12} color="#9E9E9E" />
                 <Text style={styles.sub}>{resident.mobile}</Text>
               </View>
             ) : null}

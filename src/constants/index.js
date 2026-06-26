@@ -132,6 +132,7 @@ export const QUERY_KEYS = Object.freeze({
   ENTRY_HISTORY:   (id) => ['entry-history', id],
   GUARDS:          ['guards'],
   GUARD_MESSAGES:  ['guard-messages'],
+  GUARD_STATS:     ['guard-stats'],
   LISTINGS:        ['listings'],
   LISTING:         (id) => ['listings', id],
   COMMUNITY_POSTS: ['community'],

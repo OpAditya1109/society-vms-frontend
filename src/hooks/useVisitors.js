@@ -7,18 +7,22 @@ import { QUERY_KEYS } from '../constants';
 /**
  * Fetch paginated visitor list for the authenticated resident.
  * Endpoint: GET /api/visitors
+ *
+ * staleTime: 0 + refetchOnMount (global default) means every time the
+ * resident opens this screen the list is refreshed automatically.
+ * refetchInterval: 30s keeps the status badges live (pending → approved etc.)
  */
 export function useVisitors(params) {
   return useQuery({
     queryKey: [...QUERY_KEYS.VISITORS, params],
     queryFn: () => visitorService.getVisitors(params),
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
 }
 
-/**
- * Approve a visitor request.
- * Endpoint: PATCH /api/visitors/:id/approve
- */
+/** Approve a visitor request — PATCH /api/visitors/:id/approve */
 export function useApproveVisitor() {
   const queryClient = useQueryClient();
 
@@ -32,10 +36,7 @@ export function useApproveVisitor() {
   });
 }
 
-/**
- * Reject a visitor request.
- * Endpoint: PATCH /api/visitors/:id/reject
- */
+/** Reject a visitor request — PATCH /api/visitors/:id/reject */
 export function useRejectVisitor() {
   const queryClient = useQueryClient();
 

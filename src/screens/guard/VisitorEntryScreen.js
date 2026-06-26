@@ -393,7 +393,7 @@ const handleCapturePhoto = async () => {
                 value={value}
                 onChangeText={onChange}
                 error={errors.name?.message}
-                left="account-outline"
+                left="person-outline"
                 autoCapitalize="words"
                 returnKeyType="next"
               />
@@ -409,7 +409,7 @@ const handleCapturePhoto = async () => {
                 value={value}
                 onChangeText={onChange}
                 error={errors.mobile?.message}
-                left="phone-outline"
+                left="call-outline"
                 keyboardType="phone-pad"
                 maxLength={10}
                 returnKeyType="next"

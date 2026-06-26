@@ -9,7 +9,9 @@ export function useActiveGuards() {
   return useQuery({
     queryKey: QUERY_KEYS.GUARDS,
     queryFn: () => guardService.getActiveGuards(),
-    staleTime: 60 * 1000,
+    staleTime: 0,
+    refetchInterval: 30_000,          // duty status can change any time
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -31,13 +33,17 @@ export function useSendGuardMessage() {
   });
 }
 
-/** Guard: fetch received messages */
+/**
+ * Guard: fetch received messages.
+ * Polls every 30 s so new resident messages appear without manual refresh.
+ */
 export function useGuardMessages() {
   return useQuery({
     queryKey: QUERY_KEYS.GUARD_MESSAGES,
     queryFn: () => guardService.getMessages(),
-    staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000, // poll every 60s for new messages
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -65,5 +71,14 @@ export function useReplyToMessage() {
       const msg = err?.response?.data?.message ?? 'Failed to send reply.';
       Toast.show({ type: 'error', text1: 'Error', text2: msg });
     },
+  });
+}
+
+/** Guard: own performance stats */
+export function useGuardStats() {
+  return useQuery({
+    queryKey: QUERY_KEYS.GUARD_STATS,
+    queryFn: () => guardService.getMyStats(),
+    staleTime: 60_000,               // stats are less time-sensitive; 1 min is fine
   });
 }

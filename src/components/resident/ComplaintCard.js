@@ -9,7 +9,7 @@ const STATUS_CONFIG = {
   [COMPLAINT_STATUS.OPEN]:        { label: 'Open',        color: '#C62828', icon: 'alert-circle-outline' },
   [COMPLAINT_STATUS.IN_PROGRESS]: { label: 'In Progress', color: '#F9A825', icon: 'hourglass-outline' },
   [COMPLAINT_STATUS.RESOLVED]:    { label: 'Resolved',    color: '#2E7D32', icon: 'checkmark-circle-outline' },
-  [COMPLAINT_STATUS.CLOSED]:      { label: 'Closed',      color: '#546E7A', icon: 'lock-closed-outline' },
+  [COMPLAINT_STATUS.CLOSED]:      { label: 'Closed',      color: '#546E7A', icon: 'lock-closed' },
 };
 
 const PRIORITY_CONFIG = {

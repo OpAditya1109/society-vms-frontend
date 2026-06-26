@@ -35,7 +35,7 @@ function AlertCard({ alert, onAcknowledge, onResolve }) {
       <Text style={styles.alertMessage}>{alert.message}</Text>
 
       <View style={styles.residentInfo}>
-        <Ionicons name="account-outline" size={14} color="#555" />
+        <Ionicons name="person-outline" size={14} color="#555" />
         <Text style={styles.residentText}>
           {resident?.firstName} {resident?.lastName} · Flat {resident?.flatNumber ?? alert.flatNumber}
         </Text>
@@ -46,7 +46,7 @@ function AlertCard({ alert, onAcknowledge, onResolve }) {
           style={styles.callResidentBtn}
           onPress={() => Linking.openURL(`tel:${resident.mobile}`).catch(() => {})}
         >
-          <Ionicons name="phone-outline" size={16} color="#1565C0" />
+          <Ionicons name="call-outline" size={16} color="#1565C0" />
           <Text style={styles.callResidentText}>Call {resident.firstName}: {resident.mobile}</Text>
         </TouchableOpacity>
       )}

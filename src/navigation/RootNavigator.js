@@ -23,6 +23,8 @@ import { ROLES, RESIDENT_STATUS, SCREENS } from '../constants';
 // ── Notification / socket integration ────────────────────────────────────────
 import { useVisitorNotifications } from '../hooks/useVisitorNotifications';
 import VisitorAlertPopup            from '../components/common/VisitorAlertPopup';
+import { useSosNotifications }      from '../hooks/useSosNotifications';
+import SosAlertPopup                from '../components/common/SosAlertPopup';
 
 const Root = createNativeStackNavigator();
 
@@ -47,6 +49,9 @@ function AppShell() {
   // 🔔 Visitor alert popup (only fires for residents)
   const { pendingVisitor, dismissVisitor } = useVisitorNotifications();
 
+  // 🆘 SOS alert popup (only fires for guards/admins)
+  const { pendingSos, dismissSos } = useSosNotifications();
+
   const handleApproved = () => {
     dismissVisitor();
     Toast.show({ type: 'success', text1: '✅ Visitor Approved', text2: 'The guard has been notified.' });
@@ -55,6 +60,16 @@ function AppShell() {
   const handleRejected = () => {
     dismissVisitor();
     Toast.show({ type: 'error', text1: '❌ Visitor Rejected', text2: 'The guard has been notified.' });
+  };
+
+  const handleSosAcknowledged = () => {
+    dismissSos();
+    Toast.show({ type: 'success', text1: '🆘 Alert Acknowledged', text2: 'Resident has been notified you are responding.' });
+  };
+
+  const handleSosResolved = () => {
+    dismissSos();
+    Toast.show({ type: 'success', text1: '✅ SOS Resolved', text2: 'The resident has been notified.' });
   };
 
   return (
@@ -77,6 +92,14 @@ function AppShell() {
         onDismiss={dismissVisitor}
         onApproved={handleApproved}
         onRejected={handleRejected}
+      />
+
+      {/* 🆘 Floating SOS alert for guards/admins — renders on top of every screen */}
+      <SosAlertPopup
+        alert={pendingSos}
+        onDismiss={dismissSos}
+        onAcknowledged={handleSosAcknowledged}
+        onResolved={handleSosResolved}
       />
     </View>
   );
