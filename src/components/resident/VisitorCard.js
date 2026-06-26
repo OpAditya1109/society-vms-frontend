@@ -120,7 +120,7 @@ export default function VisitorCard({ visitor, onApprove, onReject }) {
           </TouchableOpacity>
         ) : (
           <View style={[styles.avatar, { backgroundColor: colors.primaryContainer }]}>
-            <Ionicons name="person-outline" size={20} color={colors.primary} />
+            <Ionicons name="account-outline" size={20} color={colors.primary} />
           </View>
         )}
 

@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet } from 'react-native';
+import OtpVerifyScreen from '../screens/guard/OtpVerifyScreen';
 
 import { SCREENS } from '../constants';
 import GuardDashboardScreen  from '../screens/guard/GuardDashboardScreen';
@@ -69,6 +70,11 @@ function VisitorStackNavigator() {
       <VisitorStack.Screen name={SCREENS.GUARD_VISITOR_LOGS}   component={VisitorLogsScreen} />
       <VisitorStack.Screen name={SCREENS.GUARD_VISITOR_ENTRY}  component={VisitorEntryScreen} />
       <VisitorStack.Screen name={SCREENS.GUARD_VISITOR_DETAIL} component={VisitorDetailScreen} />
+      <VisitorStack.Screen
+        name="OtpVerify"
+        component={OtpVerifyScreen}
+        options={{ headerShown: true, title: 'Verify Visitor OTP' }}
+      />
     </VisitorStack.Navigator>
   );
 }

@@ -45,7 +45,7 @@ export default function AppButton({
       buttonColor={color ?? (mode === 'contained' ? colors.primary : undefined)}
       style={[styles.base, style]}
       contentStyle={[{ height: heightMap[size] }, contentStyle]}
-      labelStyle={{ fontSize: fontMap[size], fontWeight: '600', letterSpacing: 0.5 }}
+    labelStyle={{ fontSize: fontMap[size], fontWeight: '600', letterSpacing: 0.5, color: mode === 'contained' ? '#fff' : undefined }}
       {...rest}
     >
       {loading ? (

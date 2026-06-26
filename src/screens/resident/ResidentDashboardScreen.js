@@ -423,7 +423,7 @@ export default function ResidentDashboardScreen({ navigation }) {
       <Image source={{ uri: v.photoUrl }} style={styles.recentVisitorPhoto} />
     ) : (
       <View style={[styles.recentVisitorIcon, { backgroundColor: colors.primaryContainer }]}>
-        <Ionicons name="person-outline" size={22} color={colors.primary} />
+        <Ionicons name="account-outline" size={22} color={colors.primary} />
       </View>
     )}
     <Text style={styles.recentVisitorName} numberOfLines={1}>

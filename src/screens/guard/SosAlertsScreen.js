@@ -35,7 +35,7 @@ function AlertCard({ alert, onAcknowledge, onResolve }) {
       <Text style={styles.alertMessage}>{alert.message}</Text>
 
       <View style={styles.residentInfo}>
-        <Ionicons name="person-outline" size={14} color="#555" />
+        <Ionicons name="account-outline" size={14} color="#555" />
         <Text style={styles.residentText}>
           {resident?.firstName} {resident?.lastName} · Flat {resident?.flatNumber ?? alert.flatNumber}
         </Text>

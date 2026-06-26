@@ -18,7 +18,7 @@ const CATEGORIES = [
   { key: 'cook',    label: 'Cook',     icon: 'restaurant-outline', color: '#2E7D32' },
   { key: 'nurse',   label: 'Nurse',    icon: 'medkit-outline',     color: '#C62828' },
   { key: 'vendor',  label: 'Vendor',   icon: 'bag-outline',        color: '#F9A825' },
-  { key: 'other',   label: 'Other',    icon: 'person-outline',     color: '#607D8B' },
+  { key: 'other',   label: 'Other',    icon: 'account-outline',     color: '#607D8B' },
 ];
 
 const getCat = (key) => CATEGORIES.find(c => c.key === key) ?? CATEGORIES[6];

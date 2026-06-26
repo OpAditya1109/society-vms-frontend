@@ -38,13 +38,12 @@ const TYPE_OPTIONS = [
   { value: NOTICE_TYPE.EVENT,       label: 'Event' },
 ];
 
-// Type filter config (includes "All")
 const FILTER_OPTIONS = [
-  { value: 'all',                   label: 'All',         icon: 'list-outline',              color: ADMIN_ACCENT },
-  { value: NOTICE_TYPE.GENERAL,     label: 'General',     icon: 'information-circle-outline', color: '#1565C0' },
-  { value: NOTICE_TYPE.MAINTENANCE, label: 'Maintenance', icon: 'construct-outline',          color: '#E65100' },
-  { value: NOTICE_TYPE.EMERGENCY,   label: 'Emergency',   icon: 'warning-outline',            color: '#C62828' },
-  { value: NOTICE_TYPE.EVENT,       label: 'Event',       icon: 'calendar-outline',           color: '#2E7D32' },
+  { value: 'all',                   label: 'All',         icon: 'list-outline',               color: ADMIN_ACCENT },
+  { value: NOTICE_TYPE.GENERAL,     label: 'General',     icon: 'information-circle-outline',  color: '#1565C0' },
+  { value: NOTICE_TYPE.MAINTENANCE, label: 'Maintenance', icon: 'construct-outline',           color: '#E65100' },
+  { value: NOTICE_TYPE.EMERGENCY,   label: 'Emergency',   icon: 'warning-outline',             color: '#C62828' },
+  { value: NOTICE_TYPE.EVENT,       label: 'Event',       icon: 'calendar-outline',            color: '#2E7D32' },
 ];
 
 export default function NoticesManagementScreen() {
@@ -52,21 +51,19 @@ export default function NoticesManagementScreen() {
   const queryClient = useQueryClient();
 
   const [formVisible, setFormVisible]               = useState(false);
-  const [editTarget, setEditTarget]                 = useState(null);   // notice being edited
+  const [editTarget, setEditTarget]                 = useState(null);
   const [deleteTarget, setDeleteTarget]             = useState(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [activeFilter, setActiveFilter]             = useState('all');  // type filter
+  const [activeFilter, setActiveFilter]             = useState('all');
 
   const { data, isLoading, isError, error, refetch, isRefetching } = useNotices({ limit: 50 });
   const notices = data?.data ?? [];
 
-  // ── Filtered list ────────────────────────────────────────────────────────────
   const filteredNotices = useMemo(() => {
     if (activeFilter === 'all') return notices;
     return notices.filter((n) => n.type === activeFilter);
   }, [notices, activeFilter]);
 
-  // ── Create mutation ──────────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: (payload) => noticeService.createNotice(payload),
     onSuccess: () => {
@@ -80,7 +77,6 @@ export default function NoticesManagementScreen() {
     },
   });
 
-  // ── Edit mutation ────────────────────────────────────────────────────────────
   const editMutation = useMutation({
     mutationFn: ({ id, payload }) => noticeService.updateNotice(id, payload),
     onSuccess: () => {
@@ -94,7 +90,6 @@ export default function NoticesManagementScreen() {
     },
   });
 
-  // ── Delete mutation ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: (id) => noticeService.deleteNotice(id),
     onSuccess: () => {
@@ -109,15 +104,14 @@ export default function NoticesManagementScreen() {
     },
   });
 
-  // ── Form helpers ─────────────────────────────────────────────────────────────
   const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(noticeSchema),
     defaultValues: { title: '', content: '', type: NOTICE_TYPE.GENERAL },
   });
 
-  const selectedType   = watch('type');
-  const isMutating     = createMutation.isPending || editMutation.isPending;
-  const isEditMode     = !!editTarget;
+  const selectedType = watch('type');
+  const isMutating   = createMutation.isPending || editMutation.isPending;
+  const isEditMode   = !!editTarget;
 
   const openCreateForm = () => {
     setEditTarget(null);
@@ -154,15 +148,18 @@ export default function NoticesManagementScreen() {
 
   return (
     <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
+
+      {/* ── Header ── */}
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Notices" titleStyle={{ fontWeight: '700' }} />
         <Appbar.Action icon="plus" onPress={openCreateForm} />
       </Appbar.Header>
 
-      {/* ── Type filter chips ──────────────────────────────────────────────── */}
+      {/* ── Type filter chips ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
         {FILTER_OPTIONS.map((opt) => {
@@ -195,7 +192,7 @@ export default function NoticesManagementScreen() {
         })}
       </ScrollView>
 
-      {/* ── Notice list ────────────────────────────────────────────────────── */}
+      {/* ── Notice list ── */}
       {isLoading ? (
         <SkeletonList count={5} />
       ) : isError ? (
@@ -240,7 +237,7 @@ export default function NoticesManagementScreen() {
         />
       )}
 
-      {/* ── Create / Edit Notice Modal ─────────────────────────────────────── */}
+      {/* ── Create / Edit Notice Modal ── */}
       <Portal>
         <Modal
           visible={formVisible}
@@ -253,7 +250,6 @@ export default function NoticesManagementScreen() {
             </Text>
             <Divider style={{ marginBottom: 16 }} />
 
-            {/* Type selector */}
             <Text variant="labelSmall" style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>
               NOTICE TYPE
             </Text>
@@ -316,7 +312,7 @@ export default function NoticesManagementScreen() {
         </Modal>
       </Portal>
 
-      {/* ── Delete Confirmation ────────────────────────────────────────────── */}
+      {/* ── Delete Confirmation ── */}
       <ConfirmationModal
         visible={deleteModalVisible}
         title="Delete Notice"
@@ -326,7 +322,12 @@ export default function NoticesManagementScreen() {
         icon="trash-outline"
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(deleteTarget?._id)}
-        onDismiss={() => { if (!deleteMutation.isPending) { setDeleteModalVisible(false); setDeleteTarget(null); } }}
+        onDismiss={() => {
+          if (!deleteMutation.isPending) {
+            setDeleteModalVisible(false);
+            setDeleteTarget(null);
+          }
+        }}
       />
     </SafeAreaView>
   );
@@ -334,16 +335,31 @@ export default function NoticesManagementScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+
+  // ── Filter row ──────────────────────────────────────────────────────────────
+  filterScroll: {
+    flexGrow: 0,        // ✅ prevents ScrollView from stretching vertically
+    flexShrink: 0,
+  },
   filterRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,  // ✅ tight padding — no excess gap
   },
   filterChip: {
     borderRadius: 20,
   },
-  list: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32 },
+
+  // ── List ────────────────────────────────────────────────────────────────────
+  list: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 32,
+  },
+
+  // ── Modal ───────────────────────────────────────────────────────────────────
   modal: {
     margin: 20,
     borderRadius: 20,

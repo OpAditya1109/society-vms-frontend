@@ -92,7 +92,7 @@ function QrPassModal({ visible, visitor, onClose }) {
               <View style={qrStyles.dashes} />
 
               <View style={qrStyles.infoSection}>
-                <PassRow icon="person-outline" label="Visitor" value={visitor.name} />
+                <PassRow icon="account-outline" label="Visitor" value={visitor.name} />
                 <PassRow icon="call-outline" label="Mobile" value={visitor.mobile} />
                 <PassRow icon="clipboard-outline" label="Purpose" value={visitor.purpose} />
                 <PassRow icon="home-outline" label="Flat" value={visitor.flatNumber} />

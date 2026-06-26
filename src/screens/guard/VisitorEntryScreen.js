@@ -194,14 +194,20 @@ const handleCapturePhoto = async () => {
     createVisitor(
       { ...values, photoUrl },
       {
-        onSuccess: () => {
+        onSuccess: (result) => {
           reset();
           setFlatSearch('');
           setSelectedResident(null);
           setPhotoUri(null);
           setPhotoUrl(null);
           setPhotoError(null);
-          navigation?.goBack();
+
+          // Navigate to OTP screen instead of going back
+          navigation.navigate('OtpVerify', {
+            visitorId:     result.data._id,
+            visitorMobile: values.mobile,
+            visitorName:   values.name,
+          });
         },
       },
     );
@@ -393,7 +399,7 @@ const handleCapturePhoto = async () => {
                 value={value}
                 onChangeText={onChange}
                 error={errors.name?.message}
-                left="person-outline"
+                left="account-outline"
                 autoCapitalize="words"
                 returnKeyType="next"
               />

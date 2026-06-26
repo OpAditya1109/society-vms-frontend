@@ -533,7 +533,7 @@ export default function CommunityScreen() {
       <View style={styles.tabRow}>
         {[
           { value: 'feed', label: 'Community Feed', icon: 'newspaper-outline' },
-          { value: 'mine', label: 'My Posts',       icon: 'person-outline'    },
+          { value: 'mine', label: 'My Posts',       icon: 'account-outline'    },
         ].map((t) => (
           <TouchableOpacity
             key={t.value}

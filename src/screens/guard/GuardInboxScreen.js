@@ -153,7 +153,7 @@ function MessageCard({ msg, onMarkRead, onReply }) {
       {/* Sender + time */}
       <View style={styles.msgHeader}>
         <View style={[styles.avatar, { backgroundColor: GUARD_ACCENT + '1A' }]}>
-          <Ionicons name="person-outline" size={18} color={GUARD_ACCENT} />
+          <Ionicons name="account-outline" size={18} color={GUARD_ACCENT} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.msgFrom, { color: colors.onSurface }]}>

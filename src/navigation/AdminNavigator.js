@@ -1,22 +1,27 @@
 // src/navigation/AdminNavigator.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 
 import { SCREENS } from '../constants';
-import AdminDashboardScreen        from '../screens/admin/AdminDashboardScreen';
-import ResidentsListScreen         from '../screens/admin/ResidentsListScreen';
-import NoticesManagementScreen     from '../screens/admin/NoticesManagementScreen';
-import ComplaintsManagementScreen  from '../screens/admin/ComplaintsManagementScreen';
-import AdminProfileScreen          from '../screens/admin/AdminProfileScreen';
-import AmenityManagementScreen     from '../screens/admin/AmenityManagementScreen';
+import AdminDashboardScreen       from '../screens/admin/AdminDashboardScreen';
+import ResidentsListScreen        from '../screens/admin/ResidentsListScreen';
+import NoticesManagementScreen    from '../screens/admin/NoticesManagementScreen';
+import ComplaintsManagementScreen from '../screens/admin/ComplaintsManagementScreen';
+import AdminProfileScreen         from '../screens/admin/AdminProfileScreen';
+import AmenityManagementScreen    from '../screens/admin/AmenityManagementScreen';
+import GuardsManagementScreen     from '../screens/admin/GuardsManagementScreen';
+import GuardDetailScreen          from '../screens/admin/GuardDetailScreen';
 
-const Tab = createBottomTabNavigator();
+const Tab   = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 const ADMIN_ACCENT = '#4A148C';
 const tabIcon = (name) => ({ color, size }) => <Ionicons name={name} size={size} color={color} />;
 
-export default function AdminNavigator() {
+/** Bottom tab bar — everything except guard detail */
+function AdminTabs() {
   const { colors } = useTheme();
 
   return (
@@ -64,5 +69,16 @@ export default function AdminNavigator() {
         options={{ tabBarLabel: 'Profile', tabBarIcon: tabIcon('person-circle-outline') }}
       />
     </Tab.Navigator>
+  );
+}
+
+/** Root stack — tabs + full-screen guard screens */
+export default function AdminNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AdminTabs"   component={AdminTabs} />
+      <Stack.Screen name="AdminGuards" component={GuardsManagementScreen} />
+      <Stack.Screen name="GuardDetail" component={GuardDetailScreen} />
+    </Stack.Navigator>
   );
 }

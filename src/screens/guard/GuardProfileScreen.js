@@ -175,7 +175,7 @@ export default function GuardProfileScreen() {
           </Text>
           <Divider style={{ marginBottom: 12 }} />
           <ProfileRow
-            icon="person-outline"
+            icon="account-outline"
             label="Name"
             value={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()}
             colors={colors}
@@ -195,15 +195,15 @@ export default function GuardProfileScreen() {
           />
         </Surface>
 
-        <AppButton
-          label="Logout"
-          mode="outlined"
-          onPress={logout}
-          loading={isLogoutLoading}
-          color={colors.error}
-          icon="logout"
-          style={styles.logoutBtn}
-        />
+       <AppButton
+  label="Logout"
+  mode="contained"         // ← change this
+  onPress={logout}
+  loading={isLogoutLoading}
+  color={colors.error}
+  icon="logout"
+  style={styles.logoutBtn}
+/>
       </ScrollView>
     </SafeAreaView>
   );

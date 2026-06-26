@@ -128,7 +128,7 @@ export default function VisitorDetailScreen({ route, navigation }) {
             />
           ) : (
             <View style={[styles.photoPlaceholder, { backgroundColor: GUARD_ACCENT + '18' }]}>
-              <Ionicons name="person-outline" size={44} color={GUARD_ACCENT} />
+              <Ionicons name="account-outline" size={44} color={GUARD_ACCENT} />
             </View>
           )}
           <View style={styles.bannerText}>

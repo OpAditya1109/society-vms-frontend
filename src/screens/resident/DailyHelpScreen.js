@@ -20,7 +20,7 @@ const TYPE_CONFIG = {
   nanny:    { icon:'happy-outline',      color:'#E91E63' },
   watchman: { icon:'shield-outline',     color:'#607D8B' },
   gardener: { icon:'leaf-outline',       color:'#4CAF50' },
-  other:    { icon:'person-outline',     color:'#757575' },
+  other:    { icon:'account-outline',     color:'#757575' },
 };
 const ATT_COLORS = { present:'#2E7D32', absent:'#C62828', 'half-day':'#F9A825' };
 const EMPTY_FORM = { name:'', helpType:'maid', phone:'', aadhaar:'', photoUrl:'', workingDays:['monday','tuesday','wednesday','thursday','friday','saturday'], workTimings:{ startTime:'08:00', endTime:'10:00' } };

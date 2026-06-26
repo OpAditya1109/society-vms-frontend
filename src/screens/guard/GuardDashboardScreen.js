@@ -36,7 +36,7 @@ function MessageCard({ msg, onMarkRead }) {
     >
       <View style={styles.msgCardHeader}>
         <View style={styles.msgAvatarWrap}>
-          <Ionicons name="person-outline" size={18} color={GUARD_ACCENT} />
+          <Ionicons name="account-outline" size={18} color={GUARD_ACCENT} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.msgFrom}>

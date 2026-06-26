@@ -70,7 +70,7 @@ export default function AdminComplaintCard({ complaint, onUpdateStatus }) {
       <View style={styles.metaRow}>
         {residentName && (
           <View style={styles.metaItem}>
-            <Ionicons name="person-outline" size={12} color={colors.onSurfaceVariant} />
+            <Ionicons name="account-outline" size={12} color={colors.onSurfaceVariant} />
             <Text variant="labelSmall" style={{ color: colors.onSurfaceVariant, marginLeft: 3 }}>
               {residentName}
             </Text>

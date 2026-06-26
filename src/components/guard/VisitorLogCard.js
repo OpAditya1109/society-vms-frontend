@@ -80,7 +80,7 @@ export default function VisitorLogCard({ visitor, onPress, squareBottom = false 
               {visitor.photoUrl ? (
                 <Image source={{ uri: visitor.photoUrl }} style={styles.avatarImage} />
               ) : (
-                <Ionicons name="person-outline" size={18} color="#E65100" />
+                <Ionicons name="account-outline" size={18} color="#E65100" />
               )}
             </View>
             <View style={{ flex: 1 }}>

@@ -190,7 +190,7 @@ export default function ProfileScreen() {
         <Surface style={[styles.sectionCard, { backgroundColor: colors.surface }]} elevation={2}>
           <Text variant="titleSmall" style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>Account Details</Text>
           <Divider style={{ marginBottom: 12 }} />
-          <ProfileRow icon="person-outline"   label="Name"        value={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()} colors={colors} />
+          <ProfileRow icon="account-outline"   label="Name"        value={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()} colors={colors} />
           <ProfileRow icon="shield-outline"   label="Role"        value={user?.role}       colors={colors} />
           <ProfileRow icon="home-outline"     label="Flat Number" value={user?.flatNumber} colors={colors} />
           <ProfileRow icon="calendar-outline" label="Member Since"
@@ -228,7 +228,7 @@ export default function ProfileScreen() {
                     value={value}
                     onChangeText={onChange}
                     error={errors.firstName?.message}
-                    left="person-outline"
+                    left="account-outline"
                   />
                 )}
               />
@@ -241,7 +241,7 @@ export default function ProfileScreen() {
                     value={value}
                     onChangeText={onChange}
                     error={errors.lastName?.message}
-                    left="person-outline"
+                    left="account-outline"
                   />
                 )}
               />
