@@ -40,4 +40,28 @@ export const listingService = {
   /** Toggle interest (resident) */
   toggleInterest: (id) =>
     api.post(`/listings/${id}/interest`).then((r) => r.data),
+
+  /**
+   * Upload a single listing image to Cloudinary via backend.
+   * Call once per image (up to 5).
+   * @param {string} imageUri  Local URI from expo-image-picker
+   * @returns {Promise<{ photoUrl: string, publicId: string }>}
+   */
+  uploadListingPhoto: async (imageUri) => {
+    const formData = new FormData();
+    const filename = imageUri.split('/').pop();
+    const match    = /\.(\w+)$/.exec(filename);
+    const type     = match ? `image/${match[1]}` : 'image/jpeg';
+
+    formData.append('photo', {
+      uri:  imageUri,
+      name: filename ?? 'listing_photo.jpg',
+      type,
+    });
+
+    const response = await api.post('/upload/listing-photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data; // { success, data: { photoUrl, publicId } }
+  },
 };

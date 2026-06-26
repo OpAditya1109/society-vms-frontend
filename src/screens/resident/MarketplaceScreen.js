@@ -3,6 +3,7 @@ import React, { useState, useCallback } from 'react';
 import {
   View, FlatList, StyleSheet, KeyboardAvoidingView, Platform,
   ScrollView, TouchableOpacity, RefreshControl,
+  Image, ActivityIndicator,
 } from 'react-native';
 import {
   Text, useTheme, Appbar, Modal, Portal, Divider,
@@ -14,11 +15,14 @@ import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
 
 import { useListings, useMyListings, useCreateListing, useDeleteListing, useUpdateListing } from '../../hooks/useListings';
 import ListingCard from '../../components/resident/ListingCard';
 import { AppButton, AppInput, EmptyState, ErrorState } from '../../components/common';
 import { SkeletonList } from '../../components/resident/SkeletonCard';
+import { listingService } from '../../api/services/listingService';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LISTING_TYPES = [
@@ -94,10 +98,91 @@ export default function MarketplaceScreen() {
   const [furnishing, setFurnishing] = useState('');
   const [parking,    setParking]    = useState(false);
 
+  // ── Multi-image state (up to 5) ────────────────────────────────────────────
+  // Each entry: { uri (local preview), url (Cloudinary), uploading, error }
+  const MAX_IMAGES = 5;
+  const [images, setImages] = useState([]);
+
+  const handlePickListingImage = async () => {
+    if (images.length >= MAX_IMAGES) {
+      Toast.show({ type: 'info', text1: 'Limit reached', text2: `You can add up to ${MAX_IMAGES} photos.` });
+      return;
+    }
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Toast.show({ type: 'error', text1: 'Permission Required', text2: 'Enable photo library access in Settings.' });
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'Images',
+        allowsEditing: false,
+        quality: 0.75,
+      });
+      if (result.canceled) return;
+
+      const uri = result.assets[0].uri;
+      const idx = images.length;
+      setImages((prev) => [...prev, { uri, url: null, uploading: true, error: null }]);
+
+      try {
+        const response = await listingService.uploadListingPhoto(uri);
+        if (response?.success && response?.data?.photoUrl) {
+          setImages((prev) =>
+            prev.map((img, i) => i === idx ? { ...img, url: response.data.photoUrl, uploading: false } : img)
+          );
+        } else {
+          throw new Error('Unexpected response from server.');
+        }
+      } catch (err) {
+        const msg = err?.response?.data?.message ?? err?.message ?? 'Upload failed.';
+        setImages((prev) =>
+          prev.map((img, i) => i === idx ? { ...img, uploading: false, error: msg } : img)
+        );
+        Toast.show({ type: 'error', text1: 'Upload Failed', text2: msg });
+      }
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to open gallery. Please try again.' });
+    }
+  };
+
+  const handleRemoveListingImage = (idx) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleRetryListingImage = async (idx) => {
+    const img = images[idx];
+    if (!img) return;
+    setImages((prev) => prev.map((m, i) => i === idx ? { ...m, uploading: true, error: null } : m));
+    try {
+      const response = await listingService.uploadListingPhoto(img.uri);
+      if (response?.success && response?.data?.photoUrl) {
+        setImages((prev) => prev.map((m, i) => i === idx ? { ...m, url: response.data.photoUrl, uploading: false } : m));
+      } else throw new Error('Unexpected response.');
+    } catch (err) {
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Upload failed.';
+      setImages((prev) => prev.map((m, i) => i === idx ? { ...m, uploading: false, error: msg } : m));
+      Toast.show({ type: 'error', text1: 'Retry Failed', text2: msg });
+    }
+  };
+
+  const resetImageState = () => setImages([]);
+
   const onSubmit = (values) => {
+    const uploadedImages = images.filter((img) => img.url).map((img) => img.url);
+    const anyUploading   = images.some((img) => img.uploading);
+
+    if (anyUploading) {
+      Toast.show({ type: 'info', text1: 'Please wait', text2: 'Images are still uploading…' });
+      return;
+    }
+
     const payload = {
       ...values,
       price: parseFloat(values.price) || 0,
+      ...(uploadedImages.length > 0 && { images: uploadedImages }),
     };
     if (isFlatType) {
       payload.flatDetails = {
@@ -112,6 +197,7 @@ export default function MarketplaceScreen() {
         setBhkType('');
         setFurnishing('');
         setParking(false);
+        resetImageState();
         setShowForm(false);
         setTab('mine');
       },
@@ -261,7 +347,13 @@ export default function MarketplaceScreen() {
       <Portal>
         <Modal
           visible={showForm}
-          onDismiss={() => !createMutation.isPending && setShowForm(false)}
+          onDismiss={() => {
+            if (!createMutation.isPending) {
+              setShowForm(false);
+              reset();
+              resetImageState();
+            }
+          }}
           contentContainerStyle={[styles.modal, { backgroundColor: colors.surface }]}
         >
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -281,7 +373,12 @@ export default function MarketplaceScreen() {
                 bhkType={bhkType}    setBhkType={setBhkType}
                 furnishing={furnishing} setFurnishing={setFurnishing}
                 parking={parking}    setParking={setParking}
-                onCancel={() => { reset(); setShowForm(false); }}
+                onCancel={() => { reset(); resetImageState(); setShowForm(false); }}
+                images={images}
+                onPickImage={handlePickListingImage}
+                onRemoveImage={handleRemoveListingImage}
+                onRetryImage={handleRetryListingImage}
+                maxImages={MAX_IMAGES}
               />
             </ScrollView>
           </KeyboardAvoidingView>
@@ -334,6 +431,7 @@ function StatusQuickChange({ listingId, currentStatus, colors }) {
 function ListingForm({
   control, errors, watch, onSubmit, loading, colors, onCancel,
   isFlatType, bhkType, setBhkType, furnishing, setFurnishing, parking, setParking,
+  images, onPickImage, onRemoveImage, onRetryImage, maxImages,
 }) {
   const watchType = watch('type');
 
@@ -537,6 +635,73 @@ function ListingForm({
         </>
       )}
 
+      {/* Photos (up to 5) */}
+      <View>
+        <Text variant="labelMedium" style={{ color: colors.onSurfaceVariant, marginBottom: 8 }}>
+          Photos (optional, up to {maxImages})
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
+          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
+            {images.map((img, idx) => (
+              <View key={idx} style={styles.thumbWrap}>
+                <Image source={{ uri: img.uri }} style={styles.thumb} resizeMode="cover" />
+
+                {/* Uploading overlay */}
+                {img.uploading && (
+                  <View style={styles.thumbOverlay}>
+                    <ActivityIndicator size="small" color="#fff" />
+                  </View>
+                )}
+
+                {/* Error overlay */}
+                {img.error && !img.uploading && (
+                  <View style={styles.thumbOverlay}>
+                    <TouchableOpacity onPress={() => onRetryImage(idx)} style={styles.retryIconBtn}>
+                      <Ionicons name="refresh" size={18} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Remove button */}
+                {!img.uploading && (
+                  <TouchableOpacity style={styles.thumbRemoveBtn} onPress={() => onRemoveImage(idx)}>
+                    <Ionicons name="close" size={13} color="#fff" />
+                  </TouchableOpacity>
+                )}
+
+                {/* Uploaded tick */}
+                {img.url && !img.uploading && (
+                  <View style={styles.thumbTick}>
+                    <Ionicons name="checkmark" size={11} color="#fff" />
+                  </View>
+                )}
+              </View>
+            ))}
+
+            {/* Add button */}
+            {images.length < maxImages && (
+              <TouchableOpacity
+                style={[styles.addThumbBtn, { borderColor: colors.outlineVariant, backgroundColor: colors.surfaceVariant }]}
+                onPress={onPickImage}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="camera-outline" size={22} color={colors.onSurfaceVariant} />
+                <Text variant="labelSmall" style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>
+                  {images.length === 0 ? 'Add photo' : `${images.length}/${maxImages}`}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </ScrollView>
+
+        {/* Error summary */}
+        {images.some((img) => img.error) && (
+          <Text variant="bodySmall" style={{ color: colors.error, marginTop: 2 }}>
+            Some images failed to upload. Tap the refresh icon to retry.
+          </Text>
+        )}
+      </View>
+
       {/* Contact info */}
       <Text variant="labelMedium" style={{ color: colors.onSurfaceVariant }}>Contact (optional — defaults to your profile)</Text>
       <Controller
@@ -605,4 +770,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderRadius: 8, borderWidth: 1,
   },
+
+  // Multi-image thumbnail strip
+  thumbWrap:      { width: 90, height: 90, borderRadius: 10, overflow: 'hidden', position: 'relative' },
+  thumb:          { width: 90, height: 90, backgroundColor: '#eee' },
+  thumbOverlay:   { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center' },
+  thumbRemoveBtn: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
+  thumbTick:      { position: 'absolute', bottom: 4, right: 4, width: 18, height: 18, borderRadius: 9, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center' },
+  retryIconBtn:   { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  addThumbBtn:    { width: 90, height: 90, borderRadius: 10, borderWidth: 1.5, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
 });
