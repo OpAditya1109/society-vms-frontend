@@ -140,7 +140,7 @@ export default function VehiclesScreen({ navigation }) {
   const filtered = activeType === 'all' ? all : all.filter(v => v.vehicleType === activeType);
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView  edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="My Vehicles" titleStyle={{ fontWeight:'700' }} />

@@ -219,18 +219,18 @@ export default function MarketplaceScreen() {
     <ListingCard
       listing={item}
       onPress={() => navigation.navigate('ListingDetail', { id: item._id })}
-      style={{ marginBottom: 12 }}
+      style={styles.gridItem}
     />
   );
 
   const renderMyItem = ({ item }) => (
-    <View style={{ marginBottom: 12 }}>
+    <View style={styles.gridItem}>
       <ListingCard
         listing={item}
         onPress={() => navigation.navigate('ListingDetail', { id: item._id })}
       />
       {/* Quick status + delete row */}
-      <View style={[styles.myItemActions, { borderColor: colors.outlineVariant }]}>
+      <View style={[styles.myItemActions, { borderColor: colors.outlineVariant, backgroundColor: colors.surface }]}>
         <StatusQuickChange listingId={item._id} currentStatus={item.status} colors={colors} />
         <IconButton
           icon="trash-can-outline"
@@ -244,7 +244,7 @@ export default function MarketplaceScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
       {/* Appbar */}
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Marketplace" titleStyle={{ fontWeight: '700' }} />
@@ -291,8 +291,11 @@ export default function MarketplaceScreen() {
           <View style={{ paddingTop: 16 }}><SkeletonList count={4} /></View>
         ) : (
           <FlatList
+            key="browse-grid-2"
             data={listings}
             keyExtractor={(item) => item._id}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
             contentContainerStyle={styles.list}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             ListHeaderComponent={
@@ -327,8 +330,11 @@ export default function MarketplaceScreen() {
           <View style={{ paddingTop: 16 }}><SkeletonList count={3} /></View>
         ) : (
           <FlatList
+            key="mine-grid-2"
             data={myListings}
             keyExtractor={(item) => item._id}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
             contentContainerStyle={styles.list}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             ListEmptyComponent={
@@ -741,7 +747,9 @@ function ListingForm({
 const styles = StyleSheet.create({
   screen:       { flex: 1 },
   segmentWrap:  { paddingHorizontal: 16, paddingVertical: 12 },
-  list:         { padding: 16, paddingBottom: 32, flexGrow: 1 },
+  list:         { padding: 12, paddingBottom: 32, flexGrow: 1 },
+  row:          { gap: 10, marginBottom: 10 },
+  gridItem:     { flex: 1 },
   filterBanner: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', padding: 8, borderRadius: 8, marginBottom: 10,
@@ -763,8 +771,8 @@ const styles = StyleSheet.create({
   myItemActions: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12, borderWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: 0, borderBottomLeftRadius: 10, borderBottomRightRadius: 10,
+    paddingHorizontal: 8, borderWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 0, borderBottomLeftRadius: 12, borderBottomRightRadius: 12,
   },
   statusBtn: {
     paddingHorizontal: 12, paddingVertical: 6,

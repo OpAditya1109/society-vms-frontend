@@ -104,7 +104,7 @@ export default function FamilyMembersScreen({ navigation }) {
   const members = data || [];
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView  edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Family Members" titleStyle={{ fontWeight:'700' }} />

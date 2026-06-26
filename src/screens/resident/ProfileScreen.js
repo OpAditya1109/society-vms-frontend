@@ -131,7 +131,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="My Profile" titleStyle={{ fontWeight: '700' }} />
         <Appbar.Action icon="pencil-outline" onPress={openEdit} />

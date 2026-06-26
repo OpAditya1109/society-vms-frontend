@@ -10,7 +10,7 @@ export default function PlaceholderScreen() {
   const route = useRoute();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.center}>
         <Text variant="headlineMedium" style={{ color: colors.primary }}>
           {route.name}

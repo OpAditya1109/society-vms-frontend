@@ -92,7 +92,7 @@ export default function ComplaintsManagementScreen() {
   const statusLabel = STATUS_OPTIONS.find((s) => s.value === newStatus)?.label ?? newStatus;
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Complaints" titleStyle={{ fontWeight: '700' }} />
       </Appbar.Header>

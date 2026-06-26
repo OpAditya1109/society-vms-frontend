@@ -116,7 +116,7 @@ export default function SosScreen({ navigation }) {
   const ringWidth = progressAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 160] });
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: '#FFF5F5' }]}>
+    <SafeAreaView  edges={['bottom']} style={[styles.screen, { backgroundColor: '#FFF5F5' }]}>
       <Appbar.Header style={{ backgroundColor: '#FFF5F5', elevation: 0 }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="SOS Emergency" titleStyle={{ fontWeight: '700', color: '#C62828' }} />

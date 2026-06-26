@@ -153,7 +153,7 @@ export default function NoticesManagementScreen() {
   const onRefresh = useCallback(() => { refetch(); }, [refetch]);
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Notices" titleStyle={{ fontWeight: '700' }} />
         <Appbar.Action icon="plus" onPress={openCreateForm} />

@@ -59,7 +59,7 @@ export default function ComplaintsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Complaints" titleStyle={{ fontWeight: '700' }} />
         <Appbar.Action icon="plus" onPress={() => setFormModal(true)} />

@@ -43,7 +43,7 @@ export default function AdminProfileScreen() {
     .filter(Boolean).join('').toUpperCase() || '?';
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Profile" titleStyle={{ fontWeight: '700' }} />
       </Appbar.Header>

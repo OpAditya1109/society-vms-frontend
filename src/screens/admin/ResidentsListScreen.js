@@ -189,7 +189,7 @@ export default function ResidentsListScreen() {
   // ── Render ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Appbar.Header style={[styles.appbar, { backgroundColor: colors.surface }]}>
           <Appbar.Content
             title="Residents"
@@ -203,7 +203,7 @@ export default function ResidentsListScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Appbar.Header style={[styles.appbar, { backgroundColor: colors.surface }]}>
           <Appbar.Content
             title="Residents"
@@ -219,7 +219,7 @@ export default function ResidentsListScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: '#F5F3FF' }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: '#F5F3FF' }]}>
       {/* Header */}
       <Appbar.Header style={[styles.appbar, { backgroundColor: colors.surface }]}>
         <Appbar.Content

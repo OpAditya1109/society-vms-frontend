@@ -1,7 +1,7 @@
 // src/screens/resident/CommunityScreen.js
 import React, { useState, useCallback, useRef } from 'react';
 import {
-  View, FlatList, StyleSheet, TouchableOpacity,
+  View, FlatList, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, TextInput, KeyboardAvoidingView, Platform,
   Image, ActivityIndicator,
 } from 'react-native';
@@ -176,93 +176,96 @@ function PostDetailModal({ visible, post, onDismiss, currentUserId, colors }) {
         onDismiss={onDismiss}
         contentContainerStyle={[styles.detailModal, { backgroundColor: colors.surface }]}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          {/* Header */}
-          <View style={styles.detailHeader}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ maxHeight: '100%' }}>
+
+          {/* ── Fixed header ── */}
+          <View style={[styles.detailHeader, { borderBottomColor: colors.outlineVariant }]}>
             <View style={[styles.avatarCircle, { backgroundColor: cat.color + '20' }]}>
               <Ionicons name={cat.icon} size={18} color={cat.color} />
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text variant="titleMedium" style={{ fontWeight: '700' }}>{post.title}</Text>
+              <Text variant="titleSmall" style={{ fontWeight: '700' }} numberOfLines={1}>{post.title}</Text>
               <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
                 {post.postedBy?.firstName} {post.postedBy?.lastName}
                 {post.flatNumber ? ` · Flat ${post.flatNumber}` : ''}
               </Text>
             </View>
-            <IconButton icon="close" size={22} onPress={onDismiss} />
+            <IconButton icon="close" size={20} onPress={onDismiss} style={{ margin: 0 }} />
           </View>
 
-          <Divider />
+          {/* ── Scrollable content ── */}
+          <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          {/* Post image (full width) */}
-          {!!post.imageUrl && (
-            <Image
-              source={{ uri: post.imageUrl }}
-              style={styles.detailImage}
-              resizeMode="cover"
-            />
-          )}
+            {/* Post image — square like Instagram */}
+            {!!post.imageUrl && (
+              <Image
+                source={{ uri: post.imageUrl }}
+                style={styles.detailImage}
+                resizeMode="cover"
+              />
+            )}
 
-          {/* Body */}
-          <Text variant="bodyMedium" style={[styles.detailBody, { color: colors.onSurface }]}>
-            {post.body}
-          </Text>
-          {!!post.contactInfo && (
-            <View style={[styles.contactRow, { backgroundColor: colors.surfaceVariant, marginHorizontal: 16, marginBottom: 8 }]}>
-              <Ionicons name="phone-outline" size={13} color={colors.onSurfaceVariant} />
-              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft: 4 }}>{post.contactInfo}</Text>
-            </View>
-          )}
+            {/* Body */}
+            <Text variant="bodyMedium" style={[styles.detailBody, { color: colors.onSurface }]}>
+              {post.body}
+            </Text>
 
-          <Divider />
-          <Text variant="labelMedium" style={{ marginHorizontal: 16, marginTop: 10, color: colors.onSurfaceVariant }}>
-            Comments ({post.comments?.length ?? 0})
-          </Text>
+            {/* Contact info */}
+            {!!post.contactInfo && (
+              <View style={[styles.contactRow, { backgroundColor: colors.surfaceVariant, marginHorizontal: 16, marginBottom: 12 }]}>
+                <Ionicons name="phone-outline" size={13} color={colors.onSurfaceVariant} />
+                <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginLeft: 4 }}>{post.contactInfo}</Text>
+              </View>
+            )}
 
-          {/* Comments list */}
-          <FlatList
-            data={post.comments ?? []}
-            keyExtractor={(c) => c._id}
-            style={{ maxHeight: 220, marginTop: 6 }}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 6 }}
-            ListEmptyComponent={
-              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, textAlign: 'center', paddingVertical: 12 }}>
+            <Divider />
+
+            {/* Comments label */}
+            <Text variant="labelMedium" style={{ marginHorizontal: 16, marginTop: 12, marginBottom: 4, color: colors.onSurfaceVariant }}>
+              Comments ({post.comments?.length ?? 0})
+            </Text>
+
+            {/* Comments rendered inline — no nested FlatList inside ScrollView */}
+            {(post.comments?.length ?? 0) === 0 ? (
+              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, textAlign: 'center', paddingVertical: 16 }}>
                 No comments yet. Be the first!
               </Text>
-            }
-            renderItem={({ item }) => {
-              const isOwn = item.postedBy?._id === currentUserId ||
-                            item.postedBy?.toString?.() === currentUserId;
-              return (
-                <View style={[styles.commentRow, { borderBottomColor: colors.outlineVariant }]}>
-                  <View style={{ flex: 1 }}>
-                    <Text variant="labelSmall" style={{ color: colors.primary, fontWeight: '700' }}>
-                      {item.postedBy?.firstName} {item.postedBy?.lastName}
-                      {item.postedBy?.flatNumber ? ` · Flat ${item.postedBy.flatNumber}` : ''}
-                    </Text>
-                    <Text variant="bodySmall" style={{ color: colors.onSurface, marginTop: 2 }}>
-                      {item.text}
-                    </Text>
-                    <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginTop: 2 }}>
-                      {timeAgo(item.createdAt)}
-                    </Text>
+            ) : (
+              post.comments.map((item) => {
+                const isOwn = item.postedBy?._id === currentUserId ||
+                              item.postedBy?.toString?.() === currentUserId;
+                return (
+                  <View key={item._id} style={[styles.commentRow, { borderBottomColor: colors.outlineVariant }]}>
+                    <View style={{ flex: 1 }}>
+                      <Text variant="labelSmall" style={{ color: colors.primary, fontWeight: '700' }}>
+                        {item.postedBy?.firstName} {item.postedBy?.lastName}
+                        {item.postedBy?.flatNumber ? ` · Flat ${item.postedBy.flatNumber}` : ''}
+                      </Text>
+                      <Text variant="bodySmall" style={{ color: colors.onSurface, marginTop: 2 }}>
+                        {item.text}
+                      </Text>
+                      <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginTop: 2 }}>
+                        {timeAgo(item.createdAt)}
+                      </Text>
+                    </View>
+                    {isOwn && (
+                      <IconButton
+                        icon="delete-outline"
+                        size={16}
+                        iconColor={colors.error}
+                        onPress={() => deleteComment.mutate(item._id)}
+                        disabled={deleteComment.isPending}
+                        style={{ margin: 0 }}
+                      />
+                    )}
                   </View>
-                  {isOwn && (
-                    <IconButton
-                      icon="delete-outline"
-                      size={16}
-                      iconColor={colors.error}
-                      onPress={() => deleteComment.mutate(item._id)}
-                      disabled={deleteComment.isPending}
-                      style={{ margin: 0 }}
-                    />
-                  )}
-                </View>
-              );
-            }}
-          />
+                );
+              })
+            )}
+            <View style={{ height: 8 }} />
+          </ScrollView>
 
-          {/* Add comment */}
+          {/* ── Fixed comment input ── */}
           <View style={[styles.commentInput, { borderTopColor: colors.outlineVariant, backgroundColor: colors.surface }]}>
             <TextInput
               style={[styles.commentTextInput, { color: colors.onSurface, borderColor: colors.outlineVariant }]}
@@ -280,6 +283,7 @@ function PostDetailModal({ visible, post, onDismiss, currentUserId, colors }) {
               <Ionicons name="send" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
+
         </KeyboardAvoidingView>
       </Modal>
     </Portal>
@@ -498,7 +502,7 @@ export default function CommunityScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       {/* Appbar */}
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Community" titleStyle={{ fontWeight: '700' }} />
@@ -810,7 +814,7 @@ const styles = StyleSheet.create({
 
   card:          { borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, marginBottom: 12, overflow: 'hidden' },
   cardHeader:    { flexDirection: 'row', alignItems: 'center', padding: 12 },
-  postImage:     { width: '100%', height: 220, backgroundColor: '#eee' },
+  postImage:     { width: '100%', aspectRatio: 1, backgroundColor: '#eee' },
   cardBody:      { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10, lineHeight: 20 },
   cardFooter:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, gap: 16 },
   footerAction:  { flexDirection: 'row', alignItems: 'center' },
@@ -832,11 +836,11 @@ const styles = StyleSheet.create({
   imageRemoveBtn:     { position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center' },
   imageRetryBtn:      { position: 'absolute', bottom: 8, left: 8, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.92)' },
 
-  detailModal:   { margin: 16, borderRadius: 20, maxHeight: '90%' },
-  detailHeader:  { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 12 },
-  detailImage:   { width: '100%', height: 240, backgroundColor: '#eee' },
-  detailBody:    { padding: 16, paddingTop: 10, lineHeight: 22 },
-  commentRow:    { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start' },
+  detailModal:   { margin: 16, borderRadius: 20, maxHeight: '88%', overflow: 'hidden', backgroundColor: 'white' },
+  detailHeader:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth },
+  detailImage:   { width: '100%', aspectRatio: 1, backgroundColor: '#eee' },
+  detailBody:    { padding: 16, paddingTop: 12, lineHeight: 22 },
+  commentRow:    { paddingVertical: 10, paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start' },
   commentInput:  { flexDirection: 'row', alignItems: 'center', padding: 10, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },
   commentTextInput: { flex: 1, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14, maxHeight: 80 },
   sendBtn:       { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },

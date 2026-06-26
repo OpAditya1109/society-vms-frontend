@@ -241,7 +241,7 @@ export default function VisitorLogsScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Header colors={colors} />
         <SkeletonList count={6} />
       </SafeAreaView>
@@ -250,7 +250,7 @@ export default function VisitorLogsScreen({ navigation }) {
 
   if (isError) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Header colors={colors} />
         <ErrorState
           error={error?.response?.data?.message ?? 'Failed to load visitor logs'}
@@ -261,7 +261,7 @@ export default function VisitorLogsScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Header colors={colors} activeFiltersCount={activeFiltersCount} />
 
       {/* Search */}

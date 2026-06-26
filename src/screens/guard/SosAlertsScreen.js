@@ -92,7 +92,7 @@ export default function SosAlertsScreen({ navigation }) {
   const onRefresh = useCallback(() => refetch(), [refetch]);
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: activeCount > 0 ? '#FFF5F5' : colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: activeCount > 0 ? '#FFF5F5' : colors.background }]}>
       <Appbar.Header style={{ backgroundColor: activeCount > 0 ? '#C62828' : colors.surface }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} iconColor={activeCount > 0 ? '#fff' : undefined} />
         <Appbar.Content

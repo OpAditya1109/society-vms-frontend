@@ -42,7 +42,7 @@ const handleLogout = async () => {
 };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.safe, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
 
         {/* Logo — same as LoginScreen */}

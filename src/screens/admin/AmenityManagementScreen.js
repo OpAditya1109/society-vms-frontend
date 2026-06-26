@@ -202,7 +202,7 @@ export default function AmenityManagementScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Appbar.Header style={styles.appbar}>
           <Appbar.Content title="Amenities" titleStyle={styles.appbarTitle} />
         </Appbar.Header>
@@ -212,7 +212,7 @@ export default function AmenityManagementScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView edges={['bottom']} style={styles.screen}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Amenities" titleStyle={styles.appbarTitle} />
         <Appbar.Action icon="plus-circle" color={ADMIN_ACCENT} size={28} onPress={() => setCreateVisible(true)} />

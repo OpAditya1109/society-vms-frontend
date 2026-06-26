@@ -32,7 +32,7 @@ export default function NoticesScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Appbar.Header style={{ backgroundColor: colors.surface }}>
           <Appbar.Content title="Notices" titleStyle={{ fontWeight: '700' }} />
         </Appbar.Header>
@@ -45,7 +45,7 @@ export default function NoticesScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content title="Notices" titleStyle={{ fontWeight: '700' }} />
       </Appbar.Header>

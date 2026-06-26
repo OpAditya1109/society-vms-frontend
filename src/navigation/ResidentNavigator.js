@@ -43,12 +43,16 @@ function ProfileStack() {
 function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name={SCREENS.RESIDENT_DASHBOARD}  component={ResidentDashboardScreen} />
-      <Stack.Screen name={SCREENS.RESIDENT_VISITORS}   component={VisitorRequestsScreen} />
-      <Stack.Screen name={SCREENS.RESIDENT_COMPLAINTS} component={ComplaintsScreen} />
-      <Stack.Screen name="ResidentPreApproved"         component={PreApprovedScreen} />
-      <Stack.Screen name="ResidentAmenities"           component={AmenityBookingScreen} />
-      <Stack.Screen name="ResidentSos"                 component={SosScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_DASHBOARD}    component={ResidentDashboardScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_VISITORS}     component={VisitorRequestsScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_COMPLAINTS}   component={ComplaintsScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_NOTICES}      component={NoticesScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_FAMILY_MEMBERS} component={FamilyMembersScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_DAILY_HELP}   component={DailyHelpScreen} />
+      <Stack.Screen name={SCREENS.RESIDENT_VEHICLES}     component={VehiclesScreen} />
+      <Stack.Screen name="ResidentPreApproved"           component={PreApprovedScreen} />
+      <Stack.Screen name="ResidentAmenities"             component={AmenityBookingScreen} />
+      <Stack.Screen name="ResidentSos"                   component={SosScreen} />
     </Stack.Navigator>
   );
 }

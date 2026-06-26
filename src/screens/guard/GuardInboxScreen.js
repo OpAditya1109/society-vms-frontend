@@ -260,7 +260,7 @@ export default function GuardInboxScreen() {
   }, [selectedMsg, replyMutation]);
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       {/* Header */}
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.Content

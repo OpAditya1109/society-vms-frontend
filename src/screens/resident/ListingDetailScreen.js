@@ -1,7 +1,7 @@
 // src/screens/resident/ListingDetailScreen.js
-import React from 'react';
-import { View, ScrollView, StyleSheet, Linking, TouchableOpacity, Alert } from 'react-native';
-import { Text, useTheme, Appbar, Divider, Chip, ActivityIndicator } from 'react-native-paper';
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Linking, TouchableOpacity, Alert, Image, FlatList, Dimensions } from 'react-native';
+import { Text, useTheme, Appbar, Chip, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -9,6 +9,8 @@ import { useSelector } from 'react-redux';
 
 import { useListing, useToggleInterest, useDeleteListing } from '../../hooks/useListings';
 import { AppButton, ErrorState } from '../../components/common';
+
+const SCREEN_W = Dimensions.get('window').width;
 
 const TYPE_CONFIG = {
   flat_rent:  { label: 'Flat for Rent',  icon: 'home',             color: '#1565C0' },
@@ -33,7 +35,7 @@ export default function ListingDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView  style={[styles.screen, { backgroundColor: colors.background }]} edges={["bottom"]}>
         <Appbar.Header style={{ backgroundColor: colors.surface }}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title="Listing Detail" />
@@ -47,7 +49,7 @@ export default function ListingDetailScreen() {
 
   if (isError || !data?.data) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["bottom"]}>
         <Appbar.Header style={{ backgroundColor: colors.surface }}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title="Listing Detail" />
@@ -99,7 +101,7 @@ export default function ListingDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["bottom"]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Listing Detail" titleStyle={{ fontWeight: '700' }} />
@@ -109,6 +111,13 @@ export default function ListingDetailScreen() {
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* ── Image gallery — full bleed, no side padding ── */}
+        {listing.images?.length > 0 && (
+          <View style={styles.galleryOuter}>
+            <ImageGallery images={listing.images} colors={colors} />
+          </View>
+        )}
+
         {/* Type + Status banner */}
         <View style={[styles.typeBanner, { backgroundColor: cfg.color + '12' }]}>
           <Ionicons name={cfg.icon} size={18} color={cfg.color} />
@@ -141,18 +150,31 @@ export default function ListingDetailScreen() {
             <Text variant="titleSmall" style={[styles.sectionTitle, { color: colors.onSurface }]}>
               Flat Details
             </Text>
-            <View style={styles.chipsRow}>
-              {listing.flatDetails.bhkType    && <Chip compact icon="home"      style={styles.chip}>{listing.flatDetails.bhkType}</Chip>}
-              {listing.flatDetails.furnishing && <Chip compact icon="sofa"      style={styles.chip}>{listing.flatDetails.furnishing}</Chip>}
-              {listing.flatDetails.parking    && <Chip compact icon="car"       style={styles.chip}>Parking</Chip>}
-              {listing.flatNumber             && <Chip compact icon="door-open" style={styles.chip}>Flat {listing.flatNumber}</Chip>}
-            </View>
-            {listing.flatDetails.wing && (
-              <InfoRow icon="layers-outline" label="Wing" value={listing.flatDetails.wing} colors={colors} />
+            {/* Quick-glance chips */}
+            {(listing.flatDetails.bhkType || listing.flatDetails.furnishing || listing.flatDetails.parking) && (
+              <View style={styles.chipsRow}>
+                {listing.flatDetails.bhkType && (
+                  <View style={[styles.detailChip, { backgroundColor: colors.primaryContainer }]}>
+                    <Text style={[styles.detailChipText, { color: colors.primary }]}>{listing.flatDetails.bhkType}</Text>
+                  </View>
+                )}
+                {listing.flatDetails.furnishing && (
+                  <View style={[styles.detailChip, { backgroundColor: colors.secondaryContainer }]}>
+                    <Text style={[styles.detailChipText, { color: colors.secondary }]}>{listing.flatDetails.furnishing.replace(/-/g, ' ')}</Text>
+                  </View>
+                )}
+                {listing.flatDetails.parking && (
+                  <View style={[styles.detailChip, { backgroundColor: '#E8F5E9' }]}>
+                    <Ionicons name="car-outline" size={11} color="#2E7D32" />
+                    <Text style={[styles.detailChipText, { color: '#2E7D32', marginLeft: 3 }]}>Parking</Text>
+                  </View>
+                )}
+              </View>
             )}
-            {listing.flatDetails.floor != null && (
-              <InfoRow icon="trending-up-outline" label="Floor" value={`${listing.flatDetails.floor}`} colors={colors} />
-            )}
+            {/* Labeled info rows */}
+            {listing.flatNumber             && <InfoRow icon="door-open-outline"  label="Flat No."       value={`Flat ${listing.flatNumber}`}  colors={colors} />}
+            {listing.flatDetails.wing       && <InfoRow icon="layers-outline"     label="Wing"           value={listing.flatDetails.wing}      colors={colors} />}
+            {listing.flatDetails.floor != null && <InfoRow icon="trending-up-outline" label="Floor"      value={`${listing.flatDetails.floor}`} colors={colors} />}
             {listing.flatDetails.availableFrom && (
               <InfoRow
                 icon="calendar-outline"
@@ -239,6 +261,66 @@ export default function ListingDetailScreen() {
   );
 }
 
+// ── Image Gallery ─────────────────────────────────────────────────────────────
+function ImageGallery({ images, colors }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const onScroll = (e) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
+    setActiveIndex(idx);
+  };
+
+  return (
+    <View style={galleryStyles.wrap}>
+      <FlatList
+        data={images}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(_, i) => String(i)}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        renderItem={({ item }) => (
+          <Image
+            source={{ uri: item }}
+            style={[galleryStyles.image, { width: SCREEN_W - 32 }]}
+            resizeMode="cover"
+          />
+        )}
+      />
+      {/* Dot indicators */}
+      {images.length > 1 && (
+        <View style={galleryStyles.dotsRow}>
+          {images.map((_, i) => (
+            <View
+              key={i}
+              style={[
+                galleryStyles.dot,
+                { backgroundColor: i === activeIndex ? colors.primary : colors.outlineVariant },
+              ]}
+            />
+          ))}
+        </View>
+      )}
+      {/* Counter badge */}
+      {images.length > 1 && (
+        <View style={[galleryStyles.counter, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <Text style={galleryStyles.counterText}>{activeIndex + 1} / {images.length}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const galleryStyles = StyleSheet.create({
+  wrap:        { position: 'relative', backgroundColor: '#eee' },
+  image:       { width: SCREEN_W, height: 260, backgroundColor: '#eee' },
+  dotsRow:     { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingVertical: 8, backgroundColor: 'transparent' },
+  dot:         { width: 7, height: 7, borderRadius: 4 },
+  counter:     { position: 'absolute', top: 10, right: 10, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  counterText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+});
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 function InfoRow({ icon, label, value, colors }) {
   return (
@@ -267,32 +349,35 @@ function StatItem({ icon, value, label, colors }) {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  scroll: { padding: 16, gap: 12, paddingBottom: 40 },
+  // No horizontal padding — gallery is full-bleed; inner cards have their own padding
+  scroll:      { paddingBottom: 40, gap: 0 },
+  galleryOuter:{ marginBottom: 12 },
 
   typeBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    padding: 10, borderRadius: 12,
+    marginHorizontal: 16, padding: 10, borderRadius: 12,
   },
   typeText: { fontWeight: '700', fontSize: 14, flex: 1 },
   statusPill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
   statusText: { fontSize: 10, fontWeight: '800' },
 
-  card: { borderRadius: 14, padding: 16 },
-  title: { fontWeight: '700', marginBottom: 6, lineHeight: 36 },
-  price: { fontSize: 26, fontWeight: '800' },
-  sectionTitle: { fontWeight: '700', marginBottom: 12 },
+  card: { borderRadius: 14, padding: 16, marginHorizontal: 16, marginBottom: 10 },
+  title: { fontWeight: '700', marginBottom: 6, lineHeight: 32 },
+  price: { fontSize: 24, fontWeight: '800' },
+  sectionTitle: { fontWeight: '700', marginBottom: 10 },
 
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  chip: { height: 26 },
+  chipsRow:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  detailChip:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  detailChipText: { fontSize: 12, fontWeight: '600' },
 
   infoRow: {
     flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#0001',
+    paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#0001',
   },
 
   statsRow: {
     flexDirection: 'row', borderRadius: 14,
-    paddingVertical: 12,
+    paddingVertical: 12, marginHorizontal: 16, marginBottom: 10,
   },
   statItem: {
     flex: 1, alignItems: 'center', gap: 2,

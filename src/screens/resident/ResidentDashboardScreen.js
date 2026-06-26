@@ -289,7 +289,7 @@ export default function ResidentDashboardScreen({ navigation }) {
     }
 
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <ErrorState
           error={error?.response?.data?.message ?? 'Failed to load dashboard'}
           onRetry={refetch}

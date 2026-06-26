@@ -76,14 +76,14 @@ export default function AdminDashboardScreen({ navigation }) {
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.screen}>
+      <SafeAreaView edges={['bottom']} style={styles.screen}>
         <ErrorState error={error?.response?.data?.message ?? 'Failed to load dashboard'} onRetry={refetch} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView edges={['bottom']} style={styles.screen}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}

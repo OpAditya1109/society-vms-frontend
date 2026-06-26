@@ -79,7 +79,7 @@ export default function VisitorDetailScreen({ route, navigation }) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Appbar.Header style={{ backgroundColor: colors.surface }}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title="Visitor Details" titleStyle={{ fontWeight: '700' }} />
@@ -93,7 +93,7 @@ export default function VisitorDetailScreen({ route, navigation }) {
 
   if (isError || !visitor) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <Appbar.Header style={{ backgroundColor: colors.surface }}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title="Visitor Details" titleStyle={{ fontWeight: '700' }} />
@@ -111,7 +111,7 @@ export default function VisitorDetailScreen({ route, navigation }) {
     : null;
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
       <Appbar.Header style={{ backgroundColor: colors.surface }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Visitor Details" titleStyle={{ fontWeight: '700' }} />

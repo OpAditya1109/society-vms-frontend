@@ -161,7 +161,7 @@ export default function GuardDashboardScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: colors.background }]}>
         <ErrorState
           error={error?.response?.data?.message ?? 'Failed to load dashboard'}
           onRetry={refetch}
@@ -171,7 +171,7 @@ export default function GuardDashboardScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: '#F8F9FB' }]}>
+    <SafeAreaView edges={['bottom']} style={[styles.screen, { backgroundColor: '#F8F9FB' }]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
