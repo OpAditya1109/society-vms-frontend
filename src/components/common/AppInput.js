@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { TextInput, HelperText, useTheme } from 'react-native-paper';
+import { Ionicons } from '@expo/vector-icons';
 
 /**
- * AppInput — React Native Paper TextInput with inline error support.
+ * AppInput — React Native Paper TextInput with Ionicons support.
  *
  * @param {object}   props
  * @param {string}   props.label
@@ -47,11 +48,25 @@ export default function AppInput({
         activeOutlineColor={colors.primary}
         style={styles.input}
         outlineStyle={{ borderRadius: 12 }}
-        left={left ? <TextInput.Icon icon={left} /> : undefined}
+        left={
+          left ? (
+            <TextInput.Icon
+              icon={() => (
+                <Ionicons name={left} size={20} color={colors.onSurfaceVariant} />
+              )}
+            />
+          ) : undefined
+        }
         right={
           secureText ? (
             <TextInput.Icon
-              icon={isPasswordVisible ? 'eye-off' : 'eye'}
+              icon={() => (
+                <Ionicons
+                  name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={colors.onSurfaceVariant}
+                />
+              )}
               onPress={() => setPasswordVisible((v) => !v)}
             />
           ) : undefined

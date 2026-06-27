@@ -33,13 +33,6 @@ export const visitorService = {
   /** Guard only */
   checkOutVisitor: (id) =>
     api.patch(`/visitors/${id}/checkout`).then((r) => r.data),
-/** Guard only — verify OTP */
-verifyOtp: (id, otp) =>
-  api.post(`/visitors/${id}/verify-otp`, { otp }).then((r) => r.data),
-
-/** Guard only — resend OTP */
-resendOtp: (id) =>
-  api.post(`/visitors/${id}/resend-otp`).then((r) => r.data),
   /**
    * Guard only — upload visitor photo to Cloudinary via backend.
    * @param {string} imageUri  Local URI from expo-image-picker
@@ -62,4 +55,4 @@ resendOtp: (id) =>
     });
     return response.data; // { success, data: { photoUrl, publicId } }
   },
-};
+};  

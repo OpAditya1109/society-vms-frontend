@@ -167,7 +167,7 @@ export default function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
-                left="email-outline"
+                left="mail-outline"
               />
 
               <AppInput
@@ -176,7 +176,7 @@ export default function LoginScreen() {
                 onChangeText={set('password')}
                 error={errors.password}
                 secureText
-                left="lock-outline"
+                left="lock-closed-outline"
                 style={{ marginTop: 12 }}
               />
 

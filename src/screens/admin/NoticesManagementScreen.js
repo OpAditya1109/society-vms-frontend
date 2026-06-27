@@ -269,7 +269,7 @@ export default function NoticesManagementScreen() {
                   value={value}
                   onChangeText={onChange}
                   error={errors.title?.message}
-                  left="text-short"
+                  left="list-outline"
                   autoCapitalize="sentences"
                 />
               )}
@@ -284,7 +284,7 @@ export default function NoticesManagementScreen() {
                   value={value}
                   onChangeText={onChange}
                   error={errors.content?.message}
-                  left="text-long"
+                  left="document-text-outline"
                   multiline
                   numberOfLines={4}
                   autoCapitalize="sentences"

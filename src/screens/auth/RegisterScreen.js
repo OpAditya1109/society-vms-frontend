@@ -279,7 +279,7 @@ export default function RegisterScreen() {
               value={form.firstName}
               onChangeText={set('firstName')}
               error={errors.firstName}
-              left="account-outline"
+              left="person-outline"
               style={styles.field}
             />
 
@@ -288,7 +288,7 @@ export default function RegisterScreen() {
               value={form.lastName}
               onChangeText={set('lastName')}
               error={errors.lastName}
-              left="account-outline"
+              left="person-outline"
               style={styles.field}
             />
 
@@ -298,7 +298,7 @@ export default function RegisterScreen() {
               onChangeText={set('email')}
               error={errors.email}
               keyboardType="email-address"
-              left="email-outline"
+              left="mail-outline"
               style={styles.field}
             />
 
@@ -363,7 +363,7 @@ export default function RegisterScreen() {
               onChangeText={set('password')}
               error={errors.password}
               secureText
-              left="lock-outline"
+              left="lock-closed-outline"
               style={styles.field}
             />
 
@@ -418,7 +418,7 @@ export default function RegisterScreen() {
                   value={newSociety.address.street}
                   onChangeText={setAddr('street')}
                   error={errors.street}
-                  left="map-marker-outline"
+                  left="location-outline"
                   style={styles.field}
                 />
 

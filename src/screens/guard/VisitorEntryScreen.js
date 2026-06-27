@@ -202,13 +202,8 @@ const handleCapturePhoto = async () => {
           setPhotoUrl(null);
           setPhotoError(null);
 
-          // Navigate to OTP screen instead of going back
-          navigation.navigate('OtpVerify', {
-            visitorId:     result.data._id,
-            visitorMobile: values.mobile,
-            visitorName:   values.name,
-            otpSendFailed: !!result.data.otpSendFailed,
-          });
+          // Navigate back to dashboard after successful visitor entry
+          navigation.navigate('GuardDashboard');
         },
       },
     );
@@ -400,7 +395,7 @@ const handleCapturePhoto = async () => {
                 value={value}
                 onChangeText={onChange}
                 error={errors.name?.message}
-                left="account-outline"
+                left="person-outline"
                 autoCapitalize="words"
                 returnKeyType="next"
               />
