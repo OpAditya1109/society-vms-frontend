@@ -37,19 +37,14 @@
       ]
     },
     "web": {},
-    "plugins": [
-      "expo-font",
-      "expo-secure-store",
-      "expo-updates",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/logo.png",
-          "backgroundColor": "#1A1A1A"
-        }
-      ],
-      "@react-native-community/datetimepicker"
-    ],
+"plugins": [
+  "expo-font",
+  "expo-secure-store",
+  "expo-updates",
+  ["expo-splash-screen", { "image": "./assets/logo.png", "backgroundColor": "#1A1A1A" }],
+  "@react-native-community/datetimepicker",
+  ["expo-notifications", { "icon": "./assets/icon.png", "color": "#1565C0" }]
+],
     "extra": {
       "apiBaseUrl": "https://society-vms.vercel.app/api",
       "eas": {
